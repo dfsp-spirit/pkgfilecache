@@ -3,8 +3,8 @@ test_that("We can download files to a local dir without MD5 check.", {
   packagename = "pkgfilecache";
   author = "dfsp-spirit";
   local_relative_filenames = c("brain.mgz", "T1.mgz");
-  urls = c("http://rcmd.org/tmp/brain.mgz", "http://rcmd.org/tmp/T1.mgz");
-  md5sums = c("2c4874576eb935bf9445dda0529774e0", "24bb590cad3e091c13741b5edce2ea7d");
+  urls = c("https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/master/inst/extdata/file1.txt", "https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/master/inst/extdata/file2.txt");
+  md5sums = c("35261471bcd198583c3805ee2a543b1f", "85ffec2e6efb476f1ee1e3e7fddd86de");
 
   deleted = fc.remove_local_files(packagename, local_relative_filenames, author=author);
 
@@ -26,8 +26,8 @@ test_that("We can download files to a local dir with MD5 check.", {
   packagename = "pkgfilecache";
   author = "dfsp-spirit";
   local_relative_filenames = c("brain.mgz", "T1.mgz");
-  urls = c("http://rcmd.org/tmp/brain.mgz", "http://rcmd.org/tmp/T1.mgz");
-  md5sums = c("2c4874576eb935bf9445dda0529774e0", "24bb590cad3e091c13741b5edce2ea7d");
+  urls = c("https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/master/inst/extdata/file1.txt", "https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/master/inst/extdata/file2.txt");
+  md5sums = c("35261471bcd198583c3805ee2a543b1f", "85ffec2e6efb476f1ee1e3e7fddd86de");
 
   deleted = fc.remove_local_files(packagename, local_relative_filenames, author=author);
 
