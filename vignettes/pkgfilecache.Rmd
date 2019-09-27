@@ -25,11 +25,9 @@ You have put some file onto a server that can be accessed by the public via HTTP
 
 In the following example, we will assume that the package you develop (the one that requires the extra data in the package cache), is called `yourpackage`. And that you have these two files on the server:
 
-```{eval = FALSE}
-$ md5sum file1.txt file2.txt 
-35261471bcd198583c3805ee2a543b1f  file1.txt
-85ffec2e6efb476f1ee1e3e7fddd86de  file2.txt
-```
+
+* file1.txt, md5=35261471bcd198583c3805ee2a543b1f  
+* file2.txt, md5=85ffec2e6efb476f1ee1e3e7fddd86de
 
 
 ## Making files from a remote server available locally (on the user computer)
@@ -56,7 +54,9 @@ Now it is time to make them available:
     files_exist_now = fc.ensure_files_in_data_dir(pkg_info, local_filenames, urls, md5sums=md5sums);
 ```
 
-The returned variable `files_exist_now` is a logical vector indicating for each file whether it now exists locally. Note that the function will first check to see whether the files are already in the package cache. If you supplied md5sums, they will also be checked. Only files which did not pass the check will be downloaded, so it is save to call this function every time you want to make sure that the files exist. (E.g., in example code you give).
+The return value `files_exist_now` is a logical vector indicating for each file whether it now exists locally. Note that the function will first check to see whether the files are already in the package cache. If you supplied md5sums, they will also be checked. Only files which did not pass the check will be downloaded, so it is save to call this function every time you want to make sure that the files exist. (E.g., in example code you give). 
+
+Typically you would wrap the code above into a function within your package and call it something like `download_extra_data_if_not_available()`.
 
 
 ## Accessing a file from the local package cache
@@ -68,6 +68,31 @@ Let's now get the full path for a file in the package cash, so that we can use i
     wanted_local_file = "file1.txt";
     file_path = fc.getfile(pkg_info, wanted_local_file, mustWork=TRUE);
 ```
+
+
+## Removing files you do not need anymore from the package cache
+
+
+```{r, eval = FALSE}
+local_relative_filenames = c("local_file1.txt", "local_file2.txt");
+deleted = fc.remove_local_files(pkg_info, local_relative_filenames);
+```
+
+
+The return value `deleted` is a logical vector indicating for each file whether it was deleted. IMPORTANT: Files that did not exist in the first place were not deleted. To check which files really exist, read on.
+
+
+## Manually checking whether a file exists in the package cache
+
+Do one of the following, depending on whether you want MD5 sum checks:
+
+```{r, eval = FALSE}
+files_exist = fc.check_files_in_data_dir(pkg_info, relative_filenames);  # no MD5 check
+files_exist_and_have_correct_md5 = fc.check_files_in_data_dir(pkg_info, relative_filenames, md5sums=md5sums);  # with MD5 check
+```
+
+
+The return values are logical vectors indicating for each file whether it exists (and, in the second example, whether the MD5 sum is as expected).
 
 
 ## Limitations
