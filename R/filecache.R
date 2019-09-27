@@ -1,3 +1,13 @@
+#' @title Get the absolute path of the package cache.
+#' 
+#' @param packagename, string. The name of the package using the package cache. Must be a valid directory name. Should not contain spaces. Passed as 'appname' to `rappdirs::user_data_dir`.
+#' 
+#' @param author, string. The author of the package using the package cache, or NULL. Must be a valid directory name, no need for the real author name. Should not contain spaces. Defaults to NULL. Passed as 'appauthor' to `rappdirs::user_data_dir`. Leave at NULL if in doubt.
+#'  
+#' @return string. The absolute path of the package cache. It is constructed by calling `rappdirs::user_data_dir` with the package and author names. If the author is null, the package name is also used as the author name.
+#' 
+#' 
+#' @export
 fc.get_data_dir <- function(packagename, author=NULL) {
   if(is.null(author)) {
     author = packagename;
@@ -6,6 +16,19 @@ fc.get_data_dir <- function(packagename, author=NULL) {
   return(dd);
 }
 
+
+#' @title Delete all the given files from the package cache.
+#' 
+#' @param packagename, string. The name of the package using the package cache. Must be a valid directory name. Should not contain spaces. Passed as 'appname' to `rappdirs::user_data_dir`.
+#' 
+#' @param author, string. The author of the package using the package cache, or NULL. Must be a valid directory name, no need for the real author name. Should not contain spaces. Defaults to NULL. Passed as 'appauthor' to `rappdirs::user_data_dir`. Leave at NULL if in doubt.
+#' 
+#' @param relative_filenames, vector of strings. A vector of filenames, relative to the package cache. 
+#'  
+#' @return logical vector. For each file, whether it was deleted. Note that files which did not exist were not deleted! You should check the results using `fc.check_files_in_data_dir`.
+#' 
+#' 
+#' @export
 
 fc.remove_local_files <- function(packagename, local_relative_filenames, author=NULL) {
   datadir = fc.get_data_dir(packagename, author=author);
@@ -23,13 +46,40 @@ fc.remove_local_files <- function(packagename, local_relative_filenames, author=
 }
 
 
-
-fc.get_absolute_path_for_filecache_relative_files <- function(packagename, filenames, author=NULL) {
+#' @title Construct absolute path for package cache files.
+#' 
+#' @param packagename, string. The name of the package using the package cache. Must be a valid directory name. Should not contain spaces. Passed as 'appname' to `rappdirs::user_data_dir`.
+#' 
+#' @param author, string. The author of the package using the package cache, or NULL. Must be a valid directory name, no need for the real author name. Should not contain spaces. Defaults to NULL. Passed as 'appauthor' to `rappdirs::user_data_dir`. Leave at NULL if in doubt.
+#'  
+#' @param relative_filenames, vector of strings. A vector of filenames, relative to the package cache.
+#' 
+#' @return vector of strings. The absolute paths.
+#' 
+#' 
+#' @export
+fc.get_absolute_path_for_filecache_relative_files <- function(packagename, relative_filenames, author=NULL) {
   datadir = fc.get_data_dir(packagename, author=author);
-  return(fc.get_abs_files(datadir, filenames));
+  return(fc.get_abs_files(datadir, relative_filenames));
 }
 
 
+#' @title Check whether the given files exist in the package cache.
+#' 
+#' @description Check whether the given files exist in the package cache. You can pass MD5 sums, which will be verified and only files with correct MD5 hash will count as existing.
+#' 
+#' @param packagename, string. The name of the package using the package cache. Must be a valid directory name. Should not contain spaces. Passed as 'appname' to `rappdirs::user_data_dir`.
+#' 
+#' @param author, string. The author of the package using the package cache, or NULL. Must be a valid directory name, no need for the real author name. Should not contain spaces. Defaults to NULL. Passed as 'appauthor' to `rappdirs::user_data_dir`. Leave at NULL if in doubt.
+#' 
+#' @param md5sums, vector of strings or NULL. A list of MD5 checksums, one for each file in param 'local_relative_filenames', if not NULL. If given, the files will only be reported as existing if the MD5 sums match.
+#'  
+#' @param local_relative_filenames, vector of strings. A vector of filenames, relative to the package cache.
+#' 
+#' @return logical vector. For each file, whether it passed the check.
+#' 
+#' 
+#' @export
 fc.check_files_in_data_dir <- function(packagename, local_relative_filenames, md5sums = NULL, author=NULL) {
   if(! is.null(md5sums)) {
     if(length(local_relative_filenames) != length(md5sums)) {
@@ -42,6 +92,20 @@ fc.check_files_in_data_dir <- function(packagename, local_relative_filenames, md
   return(local_files_md5_ok);
 }
 
+
+#' @title Ensure all given files exist in the file cache, download them if they are not.
+#' 
+#' @description Download files marked as mismatched to package cache. You should check afterwards whether this was successful, e.g., via `fc.local_files_exist_md5`.
+#' 
+#' @param local_files_absolute, vector of strings. A vector of filenames, must already include the package cache part.
+#' 
+#' @param local_files_md5_ok, logical vector. For each file, whether the local copy is OK. Only files for which this lists FALSE will be downloaded.
+#' 
+#' @param urls, vector of strings. For each file, a remote URL where to download the file. Will be passed to `downloader::download`, see that function for URL encoding details.
+#' 
+#' @param files_are_binary, logical vector. For each file, whether it is binary. Only required on Windows, when files need to be downloaded. See `downloader::download` docs for details.
+#' 
+#' @keywords intern
 
 fc.ensure_files_in_data_dir <- function(packagename, local_relative_filenames, urls, files_are_binary = NULL, md5sums = NULL, author=NULL, on_errors="warn") {
   if(length(local_relative_filenames) != length(urls)) {
@@ -93,6 +157,11 @@ fc.ensure_files_in_data_dir <- function(packagename, local_relative_filenames, u
 }
 
 
+#' @title Join all relative filenames to a datadir.
+#' 
+#' @description  For each file, create a full path by joining the datadir with the filename.
+#' 
+#' @keyword internal
 fc.get_abs_files <- function(datadir, relative_filenames) {
   num_files = length(relative_filenames);
   files_absolute = rep("", num_files);
@@ -103,6 +172,17 @@ fc.get_abs_files <- function(datadir, relative_filenames) {
 }
 
 
+#' @title Check whether files exist in the package cache.
+#' 
+#' @description Check whether files exist, relative to the package cache directory. If MD5 hashes are given, they will be verified.
+#' 
+#' @param files, vector of strings. A vector of filenames, e.g., `c("file1.txt", "file2.txt")`. Relative to package cache.
+#' 
+#' @param md5sums, vector of strings or NULL. A list of MD5 checksums, one for each file in param 'files', if not NULL. If given, the files will only be reported as existing if the MD5 sums match.
+#' 
+#' @return logical vector. Whether the files exist. If the md5sums were given, whether the files exist and the MD5 sum matches.
+#' 
+#' @export
 fc.local_files_exist_md5 <- function(files, md5sums=NULL) {
   if(is.null(md5sums)) {
     files_md5_ok = file.exists(files);
@@ -114,6 +194,19 @@ fc.local_files_exist_md5 <- function(files, md5sums=NULL) {
 }
 
 
+#' @title Download files marked as mismatch to package cache.
+#' 
+#' @description Download files marked as mismatched to package cache. You should check afterwards whether this was successful, e.g., via `fc.local_files_exist_md5`.
+#' 
+#' @param local_files_absolute, vector of strings. A vector of filenames, must already include the package cache part.
+#' 
+#' @param local_files_md5_ok, logical vector. For each file, whether the local copy is OK. Only files for which this lists FALSE will be downloaded.
+#' 
+#' @param urls, vector of strings. For each file, a remote URL where to download the file. Will be passed to `downloader::download`, see that function for URL encoding details.
+#' 
+#' @param files_are_binary, logical vector. For each file, whether it is binary. Only required on Windows, when files need to be downloaded. See `downloader::download` docs for details.
+#' 
+#' @keywords intern
 fc.download_files_with_md5_mismatch <- function(local_files_absolute, local_files_md5_ok, urls, files_are_binary=NULL) {
   num_files = length(local_files_absolute);
 
@@ -146,5 +239,4 @@ fc.download_files_with_md5_mismatch <- function(local_files_absolute, local_file
         downloader::download(url=urls[file_idx], destfile=local_files_absolute[file_idx], quite=TRUE, mode=mode);
     }
   }
-
 }
