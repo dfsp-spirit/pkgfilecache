@@ -1,4 +1,7 @@
 test_that("We can download files to a local dir without MD5 check.", {
+  
+  skip_on_cran();
+  skip_if_offline(host = "raw.githubusercontent.com");
 
   pkg_info = fc.get_pkg_info("pkgfilecache");
   local_relative_filenames = c("local_file1.txt", "local_file2.txt");
@@ -21,7 +24,10 @@ test_that("We can download files to a local dir without MD5 check.", {
 
 
 test_that("We can download files to a local dir with MD5 check.", {
-
+  
+  skip_on_cran();
+  skip_if_offline(host = "raw.githubusercontent.com");
+  
   pkg_info = fc.get_pkg_info("pkgfilecache");
   local_relative_filenames = c("local_file1.txt", "local_file2.txt");
   urls = c("https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/master/inst/extdata/file1.txt", "https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/master/inst/extdata/file2.txt");
@@ -100,6 +106,9 @@ test_that("Existence of local file can be checked with MD5", {
 })
 
 test_that("One can get a file from package cache that exists", {
+  skip_on_cran();
+  skip_if_offline(host = "raw.githubusercontent.com");
+  
   pkg_info = fc.get_pkg_info("pkgfilecache");
   testfile_local="local_file1.txt"
   local_relative_filenames = c(testfile_local);
