@@ -1,6 +1,6 @@
 Package: pkgfilecache
 Type: Package
-Title: Allow Package Authors to Save Data Files in a Permanent Package Cache Directory
+Title: Allow Package Authors to Download and Manage Optional Data Files in a Package Cache Directory
 Version: 0.1.0
 Author: Tim Schäfer
 Maintainer: Tim Schäfer <ts+code@rcmd.org>
