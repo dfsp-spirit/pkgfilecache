@@ -1,10 +1,10 @@
 Package: pkgfilecache
 Type: Package
-Title: Allow Package Authors To Save Files in User Dir
+Title: Allow Package Authors to Save Data Files in a Permanent Package Cache Directory
 Version: 0.1.0
 Author: Tim Schäfer
 Maintainer: Tim Schäfer <ts+code@rcmd.org>
-Description: This package allows you to download data required for your package to a directory in the user home. The data can be hosted anywhere, and you have to give an URL for it. Checking of MD5 sums is supported. This is useful for package authors who need to ship more than the 5 MB of data currently allowed by CRAN.
+Description: This package allows you to download data required for your package to a directory in the user home. The data can be hosted anywhere, and you have to give an URL for it. Checking of MD5 sums is supported. This is useful for package authors who need to ship more than the 5 MB of data currently allowed by CRAN. Details follow. When package authors want to ship data for their package, they will quickly hit the package size limit on CRAN (which is 5 MB as of September 2019). The solution is to host the data elsewhere and download it on demand. This is what pkgfilecache allows you to do. You can put your files onto a server of your choice, take the MD5 sums, and have pkgfilecache download them locally unless they already exist and have the correct MD5 hash. You can then access in a convenient way, similar to files shipped in `inst/extdata`.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

@@ -1,59 +1,55 @@
 test_that("We can download files to a local dir without MD5 check.", {
 
-  packagename = "pkgfilecache";
-  author = "dfsp-spirit";
+  pkg_info = fc.get_pkg_info("pkgfilecache");
   local_relative_filenames = c("local_file1.txt", "local_file2.txt");
   urls = c("https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/master/inst/extdata/file1.txt", "https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/master/inst/extdata/file2.txt");
   md5sums = c("35261471bcd198583c3805ee2a543b1f", "85ffec2e6efb476f1ee1e3e7fddd86de");
 
-  deleted = fc.remove_local_files(packagename, local_relative_filenames, author=author);
+  deleted = fc.remove_local_files(pkg_info, local_relative_filenames);
 
-  file_stats = fc.check_files_in_data_dir(packagename, local_relative_filenames, md5sums=NULL, author=author);
+  file_stats = fc.check_files_in_data_dir(pkg_info, local_relative_filenames);
   expect_equal(file_stats, c(FALSE, FALSE));
 
   # delete again, this time nothing should have been deleted:
-  deleted_again = fc.remove_local_files(packagename, local_relative_filenames, author=author);
+  deleted_again = fc.remove_local_files(pkg_info, local_relative_filenames);
   expect_equal(deleted_again, c(FALSE, FALSE));
 
   # download the files
-  files_exist_now = fc.ensure_files_in_data_dir(packagename, local_relative_filenames, urls);
+  files_exist_now = fc.ensure_files_in_data_dir(pkg_info, local_relative_filenames, urls);
   expect_equal(files_exist_now, c(TRUE, TRUE));
 })
 
 
 test_that("We can download files to a local dir with MD5 check.", {
 
-  packagename = "pkgfilecache";
-  author = "dfsp-spirit";
+  pkg_info = fc.get_pkg_info("pkgfilecache");
   local_relative_filenames = c("local_file1.txt", "local_file2.txt");
   urls = c("https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/master/inst/extdata/file1.txt", "https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/master/inst/extdata/file2.txt");
   md5sums = c("35261471bcd198583c3805ee2a543b1f", "85ffec2e6efb476f1ee1e3e7fddd86de");
 
-  deleted = fc.remove_local_files(packagename, local_relative_filenames, author=author);
+  deleted = fc.remove_local_files(pkg_info, local_relative_filenames);
 
-  file_stats = fc.check_files_in_data_dir(packagename, local_relative_filenames, md5sums=md5sums, author=author);
+  file_stats = fc.check_files_in_data_dir(pkg_info, local_relative_filenames, md5sums=md5sums);
   expect_equal(file_stats, c(FALSE, FALSE));
 
   # delete again, this time nothing should have been deleted:
-  deleted_again = fc.remove_local_files(packagename, local_relative_filenames, author=author);
+  deleted_again = fc.remove_local_files(pkg_info, local_relative_filenames);
   expect_equal(deleted_again, c(FALSE, FALSE));
 
   # download the files
-  files_exist_now = fc.ensure_files_in_data_dir(packagename, local_relative_filenames, urls, md5sums=md5sums);
+  files_exist_now = fc.ensure_files_in_data_dir(pkg_info, local_relative_filenames, urls, md5sums=md5sums);
   expect_equal(files_exist_now, c(TRUE, TRUE));
 })
 
 
 
 test_that("Relative filenames can be translated to absolute ones.", {
-  packagename = "pkgfilecache";
-  author = "dfsp-spirit";
-
+  pkg_info = fc.get_pkg_info("pkgfilecache");
   files_rel = c("File1.txt", "file2.gz");
 
-  files_abs = fc.get_absolute_path_for_filecache_relative_files(packagename, files_rel, author=author);
+  files_abs = fc.get_absolute_path_for_filecache_relative_files(pkg_info, files_rel);
 
-  dd = fc.get_data_dir(packagename, author=author);
+  dd = fc.get_data_dir(pkg_info);
 
   expect_equal(length(files_abs), length(files_rel));
   expect_equal(files_abs[0], file.path(dd, files_rel[0]));
@@ -104,32 +100,31 @@ test_that("Existence of local file can be checked with MD5", {
 })
 
 test_that("One can get a file from package cache that exists", {
-  packagename = "pkgfilecache";
-  author = "dfsp-spirit";
+  pkg_info = fc.get_pkg_info("pkgfilecache");
   testfile_local="local_file1.txt"
   local_relative_filenames = c(testfile_local);
   urls = c("https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/master/inst/extdata/file1.txt");
   md5sums = c("35261471bcd198583c3805ee2a543b1f");
   
-  deleted = fc.remove_local_files(packagename, local_relative_filenames, author=author);
-  files_exist_now = fc.ensure_files_in_data_dir(packagename, local_relative_filenames, urls, md5sums=md5sums);
+  deleted = fc.remove_local_files(pkg_info, local_relative_filenames);
+  files_exist_now = fc.ensure_files_in_data_dir(pkg_info, local_relative_filenames, urls, md5sums=md5sums);
   expect_equal(files_exist_now, c(TRUE));
   
   # Now check for a file that is known to exist:
-  known_path = fc.get_absolute_path_for_filecache_relative_files(packagename, c(testfile_local), author=author);
-  filepath = fc.getfile(testfile_local, packagename, mustWork=TRUE, author=author);
+  known_path = fc.get_absolute_path_for_filecache_relative_files(pkg_info, c(testfile_local));
+  filepath = fc.getfile(pkg_info, testfile_local, mustWork=TRUE);
   expect_equal(filepath, known_path);
   
   # Using mustWork=FALSE should not make a difference for this file, as it exists.
-  filepath = fc.getfile(testfile_local, packagename, mustWork=FALSE, author=author);
+  filepath = fc.getfile(pkg_info, testfile_local, mustWork=FALSE);
   expect_equal(filepath, known_path);
   
   # Now check for a file that does NOT exist witg mustWork=FALSE:
   testfile_not_there = "sfsukasnfkasjfnask.txt"
-  known_path = fc.get_absolute_path_for_filecache_relative_files(packagename, c(testfile_not_there), author=author);
-  filepath = fc.getfile(testfile_not_there, packagename, mustWork=FALSE, author=author);
+  known_path = fc.get_absolute_path_for_filecache_relative_files(pkg_info, c(testfile_not_there));
+  filepath = fc.getfile(pkg_info, testfile_not_there, mustWork=FALSE);
   expect_equal(filepath, "");
   
   # We expect an error in this case for mustWork=TRUE:
-  expect_error(fc.getfile(testfile_not_there, packagename, mustWork=TRUE, author=author));
+  expect_error(fc.getfile(pkg_info, testfile_not_there, mustWork=TRUE));
 })
