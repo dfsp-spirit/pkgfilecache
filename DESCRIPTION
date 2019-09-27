@@ -1,0 +1,18 @@
+Package: pkgfilecache
+Type: Package
+Title: Allow Package Authors To Save Files in User Dir
+Version: 0.1.0
+Author: Tim Schäfer
+Maintainer: Tim Schäfer <ts+code@rcmd.org>
+Description: This package allows you to download data required for your package to a directory in the user home. The data can be hosted anywhere, and you have to give an URL for it. Checking of MD5 sums is supported. This is useful for package authors who need to ship more than the 5 MB of data currently allowed by CRAN.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+URL: https://github.com/dfsp-spirit/pkgfilecache
+BugReports: https://github.com/dfsp-spirit/pkgfilecache/issues
+Suggests:
+    knitr,
+    rmarkdown,
+    testthat (>= 2.1.0)
+VignetteBuilder: knitr
+RoxygenNote: 6.1.1
