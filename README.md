@@ -1,5 +1,5 @@
 # pkgfilecache
-GNU R package that allows package authors to cache data files in user directories.
+GNU R package that allows package authors to download and cache optional data files in user directories.
 
 ## About
 
