@@ -78,9 +78,9 @@ fc.ensure_files_in_data_dir <- function(packagename, local_relative_filenames, u
       if(!(local_files_md5_ok_afterwards[file_idx])) {
         num_errors = num_errors + 1L;
         if(is.null(md5sums)) {
-          warn(sprintf("Failed to get file '%s' to path '%s'.\n", local_relative_filenames[file_idx], lfile));
+          warning(sprintf("Failed to get file '%s' to path '%s'.\n", local_relative_filenames[file_idx], lfile));
         } else {
-          warn(sprintf("Failed to get file '%s' with md5sum '%s' to path '%s'.\n", local_relative_filenames[file_idx], md5sums[file_idx], lfile));
+          warning(sprintf("Failed to get file '%s' with md5sum '%s' to path '%s'.\n", local_relative_filenames[file_idx], md5sums[file_idx], lfile));
         }
       }
     }

@@ -14,5 +14,8 @@ Suggests:
     knitr,
     rmarkdown,
     testthat (>= 2.1.0)
+Imports:
+    downloader,
+    rappdirs
 VignetteBuilder: knitr
 RoxygenNote: 6.1.1
