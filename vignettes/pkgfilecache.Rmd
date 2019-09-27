@@ -1,0 +1,79 @@
+---
+title: "pkgfilecache: Download and manage external package data in GNU R"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Managing external package data with pkgfilecache}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+# Managing external package data with pkgfilecache
+
+## Audience
+
+This is intended for GNU R package developers who need to download optional extra data for their package.
+
+## Background
+
+When package authors want to ship data for their package, they will quickly hit the package size limit on CRAN (which is 5 MB as of September 2019). The solution is to host the data elsewhere and download it on demand. This is what pkgfilecache allows you to do. You can put your files onto a web server of your choice, take the MD5 sums, and have pkgfilecache download them locally unless they already exist and have the correct MD5 hash. You can then access them in a convenient way, similar to files shipped in `inst/extdata`.
+
+One could download the files every time to a temporary directory, but that clearly does not make sense in many cases. This package permanently stores the files under a subdir of the directory returned by `rappdirs::user_data_dir`. For my Ubuntu Linux system, that is `/home/myuser/.local/share`, but that should not bother you and you should not care about it.
+
+## Prequisites
+
+You have put some file onto a server that can be accessed by the public via HTTP or HTTPS. Optionally, you know their MD5 checksums.
+
+In the following example, we will assume that the package you develop (the one that requires the extra data in the package cache), is called `yourpackage`. And that you have these two files on the server:
+
+```{eval = FALSE}
+$ md5sum file1.txt file2.txt 
+35261471bcd198583c3805ee2a543b1f  file1.txt
+85ffec2e6efb476f1ee1e3e7fddd86de  file2.txt
+```
+
+
+## Making files from a remote server available locally (on the user computer)
+
+
+Let's first make files hosted on our server available on the client, in the package cache. First, define the files you want:
+
+
+```{r, eval = FALSE}
+    library("pkgfilecache")
+
+    pkg_info = fc.get_pkg_info("yourpackage");   # Something to identify the package that uses the package file cache.
+    
+    local_filenames = c("file1.txt", "file2.txt");    # How the files should be called in the local package file cache
+    urls = c("https://your.server/yourpackage/large_file1.txt", "https://your.server/yourpackage/large_file2.txt"); # Remote URLs where to download files from
+    md5sums = c("35261471bcd198583c3805ee2a543b1f", "85ffec2e6efb476f1ee1e3e7fddd86de");    # MD5 checksums. Optional but recommended.
+    
+    
+```
+
+Now it is time to make them available:
+
+```{r, eval = FALSE}
+    files_exist_now = fc.ensure_files_in_data_dir(pkg_info, local_filenames, urls, md5sums=md5sums);
+```
+
+The returned variable `files_exist_now` is a logical vector indicating for each file whether it now exists locally. Note that the function will first check to see whether the files are already in the package cache. If you supplied md5sums, they will also be checked. Only files which did not pass the check will be downloaded, so it is save to call this function every time you want to make sure that the files exist. (E.g., in example code you give).
+
+
+## Accessing a file from the local package cache
+
+Let's now get the full path for a file in the package cash, so that we can use it in our application:
+
+
+```{r, eval = FALSE}
+    wanted_local_file = "file1.txt";
+    file_path = fc.getfile(pkg_info, wanted_local_file, mustWork=TRUE);
+```
+
+
+## Limitations
+
+* This needs the internet to work (at least once) for downloading. You should check the return values of the functions and be prepared for the case that the download failed.
+* Currently, writing files to a local directory structure under the package cache dir is not supported. All files go directly into that dir.
+* Nothing is special about the local package cache dir, and of course there is no way to enforce that other packages or applications do not mess with it and the data in it. You should never store secrets of any kind in that directory!
+* It is your responsibility not to write absurd amounts of data into that directory.
+
