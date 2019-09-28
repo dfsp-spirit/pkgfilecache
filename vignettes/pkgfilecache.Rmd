@@ -156,7 +156,7 @@ And here is the function to erase the full package cache:
 ```{r, eval = FALSE}
 delete_all_optional_data <- function() {
   pkg_info = pkgfilecache::fc.get_pkg_info("yourpackage");
-  pkgfilecache::fc.erase(pkg_info);
+  return(pkgfilecache::fc.erase(pkg_info));
 }
 ```
 

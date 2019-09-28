@@ -57,13 +57,13 @@ fc.get_absolute_path_for_filecache_relative_files <- function(pkg_info, relative
 #' 
 #' @param pkg_info, named list. Package identifier, see fc.get_pkg_info() on how to get one.
 #' 
-#' @return named list. This can be passed to all function which require a `pkg_info` argument. You should not care for the inner structure and treat it as some identifier.
+#' @return The return value of the unlink() call.
 #' 
 #' 
 #' @export
 fc.erase <- function(pkg_info) {
   datadir = fc.get_data_dir(pkg_info);
-  unlink(datadir, recursive=TRUE);
+  return(unlink(datadir, recursive=TRUE));
 }
 
 #' @title List files that are available locally in the package cache.

@@ -10,7 +10,7 @@ fc.erase(pkg_info)
 \item{pkg_info, }{named list. Package identifier, see fc.get_pkg_info() on how to get one.}
 }
 \value{
-named list. This can be passed to all function which require a `pkg_info` argument. You should not care for the inner structure and treat it as some identifier.
+The return value of the unlink() call.
 }
 \description{
 Delete the full package cache directory for the given package.
