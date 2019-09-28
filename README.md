@@ -5,7 +5,7 @@ GNU R package that allows package users to download and cache optional data file
 
 *Allow Users of Your Package to Download and Manage Optional Package Data*
 
-This package allows you to give users of your package an easy way to download and manage optional data for your package. The data can be hosted anywhere, and will be stored locally in a permanent directory called a *package file cache*. Checking of MD5 sums is supported. This is useful for package authors who need to ship more than the 5 MB of data currently allowed by CRAN.
+This package allows you to give users of your package an easy way to download and manage optional data for your package. The data can be hosted anywhere, and will be stored locally in a permanent directory called a *package file cache*. Checking of MD5 sums is supported.
 
 ## Detailed Description
 
