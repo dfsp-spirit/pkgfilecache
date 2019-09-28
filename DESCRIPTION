@@ -1,6 +1,6 @@
 Package: pkgfilecache
 Type: Package
-Title: Allow Package Authors to Download and Manage Optional Data Files in a Package Cache Directory
+Title: Allow Users of Your Package to Download and Manage Optional Package Data
 Version: 0.1.0
 Author: Tim Schäfer
 Maintainer: Tim Schäfer <ts+code@rcmd.org>
