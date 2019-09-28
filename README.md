@@ -1,7 +1,9 @@
 # pkgfilecache
-GNU R package that allows package authors to download and cache optional data files in user directories.
+GNU R package that allows package users to download and cache optional data files in a local directory.
 
 ## About
+
+*Allow Users of Your Package to Download and Manage Optional Package Data*
 
 This package allows you to download data required for your package to a directory in the user home. The data can be hosted anywhere, and you have to give an URL for it. Checking of MD5 sums is supported. This is useful for package authors who need to ship more than the 5 MB of data currently allowed by CRAN.
 
