@@ -1,6 +1,6 @@
 #' @title Get the absolute path of the package cache.
 #' 
-#' @param pkg_info, named list. See `fc.get_pkg_info`.
+#' @param pkg_info, named list. Package identifier, see fc.get_pkg_info() on how to get one.
 #' 
 #' @return string. The absolute path of the package cache. It is constructed by calling `rappdirs::user_data_dir` with the package and author names. If the author is null, the package name is also used as the author name.
 #' 
@@ -13,7 +13,7 @@ fc.get_data_dir <- function(pkg_info) {
 
 #' @title Delete all the given files from the package cache.
 #' 
-#' @param pkg_info, named list. See `fc.get_pkg_info`.
+#' @param pkg_info, named list. Package identifier, see fc.get_pkg_info() on how to get one.
 #' 
 #' @param relative_filenames, vector of strings. A vector of filenames, relative to the package cache. 
 #'  
@@ -39,7 +39,7 @@ fc.remove_local_files <- function(pkg_info, relative_filenames) {
 
 #' @title Construct absolute path for package cache files.
 #' 
-#' @param pkg_info, named list. See `fc.get_pkg_info`.
+#' @param pkg_info, named list. Package identifier, see fc.get_pkg_info() on how to get one.
 #'  
 #' @param relative_filenames, vector of strings. A vector of filenames, relative to the package cache.
 #' 
@@ -50,6 +50,33 @@ fc.remove_local_files <- function(pkg_info, relative_filenames) {
 fc.get_absolute_path_for_filecache_relative_files <- function(pkg_info, relative_filenames) {
   datadir = fc.get_data_dir(pkg_info);
   return(fc.get_abs_files(datadir, relative_filenames));
+}
+
+
+#' @title Delete the full package cache directory for the given package.
+#' 
+#' @param pkg_info, named list. Package identifier, see fc.get_pkg_info() on how to get one.
+#' 
+#' @return named list. This can be passed to all function which require a `pkg_info` argument. You should not care for the inner structure and treat it as some identifier.
+#' 
+#' 
+#' @export
+fc.erase <- function(pkg_info) {
+  datadir = fc.get_data_dir(pkg_info);
+  unlink(datadir, recursive=TRUE);
+}
+
+#' @title List files that are available locally in the package cache.
+#' 
+#' @param pkg_info, named list. Package identifier, see fc.get_pkg_info() on how to get one.
+#' 
+#' @return vector of strings. The file names available, relative to the package cache.
+#' 
+#' 
+#' @export
+fc.list <- function(pkg_info) {
+  datadir = fc.get_data_dir(pkg_info);
+  return(list.files(path = datadir, pattern = NULL, all.files = FALSE, full.names = FALSE, recursive = FALSE, ignore.case = FALSE, include.dirs = FALSE));
 }
 
 
@@ -79,7 +106,7 @@ fc.get_pkg_info <- function(packagename, author=NULL) {
 #' 
 #' @description Check whether the given files exist in the package cache. You can pass MD5 sums, which will be verified and only files with correct MD5 hash will count as existing.
 #' 
-#' @param pkg_info, named list. See `fc.get_pkg_info`.
+#' @param pkg_info, named list. Package identifier, see fc.get_pkg_info() on how to get one.
 #' 
 #' @param md5sums, vector of strings or NULL. A list of MD5 checksums, one for each file in param 'relative_filenames', if not NULL. If given, the files will only be reported as existing if the MD5 sums match.
 #'  
@@ -104,7 +131,7 @@ fc.check_files_in_data_dir <- function(pkg_info, relative_filenames, md5sums = N
 
 #' @title Ensure all given files exist in the file cache, download them if they are not.
 #' 
-#' @param pkg_info, named list. See `fc.get_pkg_info`.
+#' @param pkg_info, named list. Package identifier, see fc.get_pkg_info() on how to get one.
 #' 
 #' @param relative_filenames, vector of strings. A vector of filenames, realtive to the package cache.
 #' 
@@ -172,7 +199,7 @@ fc.ensure_files_in_data_dir <- function(pkg_info, relative_filenames, urls, file
 
 #' @title Retrieve the path to a single file from the package cache.
 #' 
-#' @param pkg_info, named list. See `fc.get_pkg_info`.
+#' @param pkg_info, named list. Package identifier, see fc.get_pkg_info() on how to get one.
 #' 
 #' @param relative_filename, string. A filename, relative to the package cache.
 #' 

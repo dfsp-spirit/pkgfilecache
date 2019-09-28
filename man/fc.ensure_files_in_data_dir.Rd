@@ -8,7 +8,7 @@ fc.ensure_files_in_data_dir(pkg_info, relative_filenames, urls,
   files_are_binary = NULL, md5sums = NULL, on_errors = "warn")
 }
 \arguments{
-\item{pkg_info, }{named list. See `fc.get_pkg_info`.}
+\item{pkg_info, }{named list. Package identifier, see fc.get_pkg_info() on how to get one.}
 
 \item{relative_filenames, }{vector of strings. A vector of filenames, realtive to the package cache.}
 

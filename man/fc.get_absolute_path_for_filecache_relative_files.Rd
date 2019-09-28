@@ -8,7 +8,7 @@ fc.get_absolute_path_for_filecache_relative_files(pkg_info,
   relative_filenames)
 }
 \arguments{
-\item{pkg_info, }{named list. See `fc.get_pkg_info`.}
+\item{pkg_info, }{named list. Package identifier, see fc.get_pkg_info() on how to get one.}
 
 \item{relative_filenames, }{vector of strings. A vector of filenames, relative to the package cache.}
 }

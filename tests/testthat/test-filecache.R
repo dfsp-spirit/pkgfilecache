@@ -22,6 +22,49 @@ test_that("We can download files to a local dir without MD5 check.", {
   expect_equal(files_exist_now, c(TRUE, TRUE));
 })
 
+test_that("We can erase the file cache and list all files in the cache", {
+  
+  skip_on_cran();
+  skip_if_offline(host = "raw.githubusercontent.com");
+  
+  pkg_info = fc.get_pkg_info("pkgfilecache");
+  local_relative_filenames = c("local_file1.txt", "local_file2.txt");
+  urls = c("https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/master/inst/extdata/file1.txt", "https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/master/inst/extdata/file2.txt");
+  md5sums = c("35261471bcd198583c3805ee2a543b1f", "85ffec2e6efb476f1ee1e3e7fddd86de");
+  
+  fc.erase(pkg_info); # clear full cache
+  deleted = fc.remove_local_files(pkg_info, local_relative_filenames);
+  expect_equal(deleted, c(FALSE, FALSE));
+  
+  files_in_cache = fc.list(pkg_info);
+  expect_equal(length(files_in_cache), 0);
+  
+  file_stats = fc.check_files_in_data_dir(pkg_info, local_relative_filenames);
+  expect_equal(file_stats, c(FALSE, FALSE));
+  
+  # delete again, this time nothing should have been deleted:
+  deleted_again = fc.remove_local_files(pkg_info, local_relative_filenames);
+  expect_equal(deleted_again, c(FALSE, FALSE));
+  files_in_cache = fc.list(pkg_info);
+  expect_equal(length(files_in_cache), 0);
+  
+  # download the files
+  files_exist_now = fc.ensure_files_in_data_dir(pkg_info, local_relative_filenames, urls);
+  expect_equal(files_exist_now, c(TRUE, TRUE));
+  files_in_cache = fc.list(pkg_info);
+  expect_equal(length(files_in_cache), 2);
+  expect_true("local_file1.txt" %in% files_in_cache);
+  expect_true("local_file2.txt" %in% files_in_cache);
+  
+  # delete full cache
+  fc.erase(pkg_info); # clear full cache
+  files_in_cache = fc.list(pkg_info);
+  expect_equal(length(files_in_cache), 0);
+})
+
+
+
+
 
 test_that("We can download files to a local dir with MD5 check.", {
   
