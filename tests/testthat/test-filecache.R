@@ -116,12 +116,16 @@ test_that("Files that cannot be downloaded will be reported as failed.", {
   fc.erase(pkg_info);
   
   # download the files
-  res = fc.ensure_files_in_data_dir(pkg_info, local_relative_filenames, urls, md5sums=md5sums);
+  res = fc.ensure_files_in_data_dir(pkg_info, local_relative_filenames, urls, md5sums=md5sums, on_errors="ignore");
   expect_equal(res$file_status, c(TRUE, FALSE));
   expect_equal(length(res$available), 1L);
   expect_equal(length(res$missing), 1L);
   expect_equal(res$available[1], "local_file1.txt");
   expect_equal(res$missing[1], "will_not_make_it.txt");
+  
+  # Test warnings and errors
+  expect_warning(fc.ensure_files_in_data_dir(pkg_info, local_relative_filenames, urls, md5sums=md5sums, on_errors="warn"));
+  expect_warning(expect_error(fc.ensure_files_in_data_dir(pkg_info, local_relative_filenames, urls, md5sums=md5sums, on_errors="stop")));
 })
 
 

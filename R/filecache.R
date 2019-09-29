@@ -144,13 +144,13 @@ fc.check_files_in_data_dir <- function(pkg_info, relative_filenames, md5sums = N
 #' 
 #' @param on_errors, string. What to do if getting the files failed. One of c("warn", "stop", "ignore"). At the end, files are checked using `fc.check_files_in_data_dir`(including MD5 if given). Depending on the check results, the behaviours triggered are: "warn": Print a warning for each file that failed the check. "stop": Stop the script, i.e., the whole application. "ignore": Do nothing. You can still react using the return value.
 #' 
-#' @param download_missing, logical. Whether to try downloading missing files. Defaults to TRUE.
+#' @param download, logical. Whether to try downloading missing files. Defaults to TRUE. Existing files (with correct MD5 if available) will never be downloaded.
 #' 
 #' @return Named list. The list has entries: "available": vector of strings. The names of the files that are available in the local file cache. You can access them using fc.getfile(). "missing": vector of strings. The names of the files that this function was unable to retrieve. "file_status": Logical array indicating whether the files are available. Order is identical to the one in argument 'relative_filenames'.
 #' 
 #' 
 #' @export
-fc.ensure_files_in_data_dir <- function(pkg_info, relative_filenames, urls, files_are_binary = NULL, md5sums = NULL, on_errors="warn", download_missing=TRUE) {
+fc.ensure_files_in_data_dir <- function(pkg_info, relative_filenames, urls, files_are_binary = NULL, md5sums = NULL, on_errors="warn", download=TRUE) {
   if(length(relative_filenames) != length(urls)) {
     stop(sprintf("Data mismatch: received %d relative_filenames but %d urls. Lengths must be identical.", length(relative_filenames), length(urls)));
   }
@@ -174,29 +174,31 @@ fc.ensure_files_in_data_dir <- function(pkg_info, relative_filenames, urls, file
     dir.create(datadir, showWarnings = TRUE, recursive = TRUE);
   }
   
-  if(download_missing) {
+  if(download) {
     fc.download_files_with_md5_mismatch(local_files_absolute, local_files_md5_ok, urls, files_are_binary=files_are_binary);
-  }
-
-  # Check again whether md5sums are OK now
-  are_local_files_md5_ok_afterwards = fc.local_files_exist_md5(local_files_absolute, md5sums);
-
-  if(on_errors %in% c("warn", "stop")) {
-    num_errors = 0L;
-    for (file_idx in 1:length(local_files_absolute)) {
-      lfile = local_files_absolute[file_idx];
-      if(!(are_local_files_md5_ok_afterwards[file_idx])) {
-        num_errors = num_errors + 1L;
-        if(is.null(md5sums)) {
-          warning(sprintf("Failed to get file '%s' to path '%s'.\n", relative_filenames[file_idx], lfile));
-        } else {
-          warning(sprintf("Failed to get file '%s' with md5sum '%s' to path '%s'.\n", relative_filenames[file_idx], md5sums[file_idx], lfile));
+  
+    # Check again whether md5sums are OK now
+    are_local_files_md5_ok_afterwards = fc.local_files_exist_md5(local_files_absolute, md5sums);
+  
+    if(on_errors %in% c("warn", "stop")) {
+      num_errors = 0L;
+      for (file_idx in 1:length(local_files_absolute)) {
+        lfile = local_files_absolute[file_idx];
+        if(!(are_local_files_md5_ok_afterwards[file_idx])) {
+          num_errors = num_errors + 1L;
+          if(is.null(md5sums)) {
+            warning(sprintf("Failed to get file '%s' to path '%s'.\n", relative_filenames[file_idx], lfile));
+          } else {
+            warning(sprintf("Failed to get file '%s' with md5sum '%s' to path '%s'.\n", relative_filenames[file_idx], md5sums[file_idx], lfile));
+          }
         }
       }
+      if(num_errors > 0L && on_errors == "stop") {
+        stop(sprintf("Getting files into local cache dir failed for %d of %d files (and stop on errors was requested).\n", num_errors, length(local_files_absolute)));
+      }
     }
-    if(num_errors > 0L && on_errors == "stop") {
-      stop(sprintf("Getting files into local cache dir failed for %d of %d files (and stop on errors was requested).\n", num_errors, length(local_files_absolute)));
-    }
+  } else {
+    are_local_files_md5_ok_afterwards = fc.local_files_exist_md5(local_files_absolute, md5sums);
   }
 
   ret_list = list();
