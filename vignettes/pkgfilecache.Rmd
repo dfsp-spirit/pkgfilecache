@@ -79,8 +79,8 @@ Let's now get the full path for a file in the package cash, so that we can use i
 
 
 ```{r, eval = FALSE}
-local_relative_filenames = c("local_file1.txt", "local_file2.txt");
-deleted = fc.remove_local_files(pkg_info, local_relative_filenames);
+local_filenames = c("file1.txt", "file2.txt");
+deleted = remove_cached_files(pkg_info, local_filenames);
 ```
 
 
@@ -92,8 +92,8 @@ The return value `deleted` is a logical vector indicating for each file whether 
 Do one of the following, depending on whether you want MD5 sum checks:
 
 ```{r, eval = FALSE}
-files_exist = fc.check_files_in_data_dir(pkg_info, relative_filenames);  # no MD5 check
-files_exist_and_have_correct_md5 = fc.check_files_in_data_dir(pkg_info, relative_filenames, md5sums=md5sums);  # with MD5 check
+files_exist = are_files_available(pkg_info, local_filenames);  # no MD5 check
+files_exist_and_have_correct_md5 = are_files_available(pkg_info, local_filenames, md5sums=md5sums);  # with MD5 check
 ```
 
 
@@ -156,6 +156,10 @@ list_optional_data <- function() {
 
 
 #' @title Access a single file from the package cache by its file name.
+#'
+#' @param filename, string. The filename of the file in the package cache.
+#'
+#' @param mustWork, logical. Whether an error should be created if the file does not exist. If mustWork=FALSE and the file does not exist, the empty string is returned.
 #'
 #' @return string. The full path to the file in the package cache. Use this in your application code to open the file.
 #'

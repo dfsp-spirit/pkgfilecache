@@ -4,12 +4,14 @@
 \alias{get_pkg_info}
 \title{Construct a pkg_info object to be used with all other functions.}
 \usage{
-get_pkg_info(packagename, author = NULL)
+get_pkg_info(packagename, author = NULL, version = NULL)
 }
 \arguments{
 \item{packagename, }{string. The name of the package using the package cache. Must be a valid directory name. Should not contain spaces. Passed as 'appname' to `rappdirs::user_data_dir`.}
 
 \item{author, }{string. The author of the package using the package cache, or NULL. Must be a valid directory name if given, no need for the real author name. Should not contain spaces. Defaults to NULL. Passed as 'appauthor' to `rappdirs::user_data_dir`. Leave at NULL if in doubt.}
+
+\item{version, }{string or NULL. An optional version path element to append to the path. You might want to use this if you want multiple versions of your pacakge to be able to have independent data. If used, this would typically be "<major>.<minor>". Must be a valid directory name. Should not contain spaces or special characters.}
 }
 \value{
 named list. This can be passed to all function which require a `pkg_info` argument. You should not care for the inner structure and treat it as some identifier.

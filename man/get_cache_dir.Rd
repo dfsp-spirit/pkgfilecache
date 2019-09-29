@@ -10,7 +10,7 @@ get_cache_dir(pkg_info)
 \item{pkg_info, }{named list. Package identifier, see get_pkg_info() on how to get one.}
 }
 \value{
-string. The absolute path of the package cache. It is constructed by calling `rappdirs::user_data_dir` with the package and author names. If the author is null, the package name is also used as the author name.
+string. The absolute path of the package cache. It is constructed by calling `rappdirs::user_data_dir` with the package, author, and version if available. If the author is null, the package name is also used as the author name.
 }
 \description{
 Get the absolute path of the package cache.
