@@ -5,7 +5,8 @@
 \title{Ensure all given files exist in the file cache, download them if they are not.}
 \usage{
 fc.ensure_files_in_data_dir(pkg_info, relative_filenames, urls,
-  files_are_binary = NULL, md5sums = NULL, on_errors = "warn")
+  files_are_binary = NULL, md5sums = NULL, on_errors = "warn",
+  download_missing = TRUE)
 }
 \arguments{
 \item{pkg_info, }{named list. Package identifier, see fc.get_pkg_info() on how to get one.}
@@ -19,9 +20,11 @@ fc.ensure_files_in_data_dir(pkg_info, relative_filenames, urls,
 \item{md5sums, }{vector of strings or NULL. A list of MD5 checksums, one for each file in param 'relative_filenames', if not NULL. If given, the files will only be reported as existing if the MD5 sums match.}
 
 \item{on_errors, }{string. What to do if getting the files failed. One of c("warn", "stop", "ignore"). At the end, files are checked using `fc.check_files_in_data_dir`(including MD5 if given). Depending on the check results, the behaviours triggered are: "warn": Print a warning for each file that failed the check. "stop": Stop the script, i.e., the whole application. "ignore": Do nothing. You can still react using the return value.}
+
+\item{download_missing, }{logical. Whether to try downloading missing files. Defaults to TRUE.}
 }
 \value{
-The result of the final check using `fc.check_files_in_data_dir`.
+Named list. The list has entries: "available": vector of strings. The names of the files that are available in the local file cache. You can access them using fc.getfile(). "missing": vector of strings. The names of the files that this function was unable to retrieve. "file_status": Logical array indicating whether the files are available. Order is identical to the one in argument 'relative_filenames'.
 }
 \description{
 Ensure all given files exist in the file cache, download them if they are not.

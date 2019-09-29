@@ -49,19 +49,19 @@ Let's first make files hosted on our server available on the client, in the pack
     local_filenames = c("file1.txt", "file2.txt");    # How the files should be called in the local package file cache
     urls = c("https://your.server/yourpackage/large_file1.txt", "https://your.server/yourpackage/large_file2.txt"); # Remote URLs where to download files from
     md5sums = c("35261471bcd198583c3805ee2a543b1f", "85ffec2e6efb476f1ee1e3e7fddd86de");    # MD5 checksums. Optional but recommended.
-    
-    
 ```
 
 Now it is time to make them available:
 
 ```{r, eval = FALSE}
-    files_exist_now = fc.ensure_files_in_data_dir(pkg_info, local_filenames, urls, md5sums=md5sums);
+    res = fc.ensure_files_in_data_dir(pkg_info, local_filenames, urls, md5sums=md5sums);
 ```
 
-The return value `files_exist_now` is a logical vector indicating for each file whether it now exists locally. Note that the function will first check to see whether the files are already in the package cache. If you supplied md5sums, they will also be checked. Only files which did not pass the check will be downloaded, so it is save to call this function every time you want to make sure that the files exist. (E.g., in example code you give). 
+The return value `res` is a named list with several entries. The field `res$file_status` is a logical vector indicating for each file whether it now exists locally. Note that the function will first check to see whether the files are already in the package cache. If you supplied md5sums, they will also be checked. Only files which did not pass the check will be downloaded, so it is save to call this function every time you want to make sure that the files exist. (E.g., in example code you give). 
 
-Typically you would wrap the code above into a function within your package and call it something like `download_extra_data_if_not_available()`.
+You can also get a list of the filename which are now available (no matter whether they have been downloaded or where already available) from `res$available`. And you can get a list of file which should have been downloaded, but for which retrieval failed, from `res$missing`.
+
+Typically you would wrap the code above into a function within your package and call it something like `download_optional_data()`, see below.
 
 
 ## Accessing a file from the local package cache
@@ -114,11 +114,21 @@ I recommend to have the following public functions in your package, which users 
 
 ## Example implementation of the interface for your package
 
-Here are example implementations for the functions above. All you need to do is replace the `local_files`, `urls` and `md5sums`. And of course replace `yourpackage` with the name of your package. ;)
+Here are example implementations for the functions above. You can copy and paste them, all you need to do afterwards is:
 
-Here is the first function to download the data:
+* in all functions: replace `yourpackage` with the name of your package.
+* in the `download_optional_data` function: also replace the `local_files`, `urls` and `md5sums` with your optional data information.
+
+Here are the functions:
 
 ```{r, eval = FALSE}
+#' @title Download optional data for this package if required.
+#'
+#' @description Ensure that the optioanl data is available locally in the package cache. Will try to download the data only if it is not available.
+#' 
+#' @return Named list. The list has entries: "available": vector of strings. The names of the files that are available in the local file cache. You can access them using get_optional_data_file(). "missing": vector of strings. The names of the files that this function was unable to retrieve.
+#'
+#' @export
 download_optional_data <- function() {
   pkg_info = pkgfilecache::fc.get_pkg_info("yourpackage");        # to identify the package using the cache
   
@@ -127,33 +137,40 @@ download_optional_data <- function() {
   urls = c("https://your.server/yourpackage/large_file1.txt", "https://your.server/yourpackage/large_file2.txt"); # Remote URLs where to download files from
   md5sums = c("35261471bcd198583c3805ee2a543b1f", "85ffec2e6efb476f1ee1e3e7fddd86de");    # MD5 checksums. Optional but recommended.
   
-  return(pkgfilecache::fc.ensure_files_in_data_dir(pkg_info, local_filenames, urls, md5sums=md5sums));
+  res = pkgfilecache::fc.ensure_files_in_data_dir(pkg_info, local_filenames, urls, md5sums=md5sums);
+  res$file_status = NULL;
+  return(res);
 }
-```
 
-And the one for listing all available files:
-
-```{r, eval = FALSE}
-  list_optional_data <- function() {
+#' @title Get file names available in package cache.
+#'
+#' @description Get file names of optional data files which are available in the local package cache. You can access these files with get_optional_data_file().
+#' 
+#' @return vector of strings. The file names available, relative to the package cache.
+#'
+#' @export
+list_optional_data <- function() {
   pkg_info = pkgfilecache::fc.get_pkg_info("yourpackage");
   return(pkgfilecache::fc.list(pkg_info));
 }
-```
 
 
-And here the one for accessing a single file from the cache:
-
-```{r, eval = FALSE}
+#' @title Access a single file from the package cache by its file name.
+#'
+#' @return string. The full path to the file in the package cache. Use this in your application code to open the file.
+#'
+#' @export
 get_optional_data_file <- function(filename, mustWork=TRUE) {
   pkg_info = pkgfilecache::fc.get_pkg_info("yourpackage");
   return(pkgfilecache::fc.getfile(pkg_info, filename, mustWork=mustWork));
 }
-```
 
 
-And here is the function to erase the full package cache:
-
-```{r, eval = FALSE}
+#' @title Delete all data in the package cache.
+#'
+#' @return integer. The return value of the unlink() call: 0 for success, 1 for failure. See the unlink() documentation for details.
+#'
+#' @export
 delete_all_optional_data <- function() {
   pkg_info = pkgfilecache::fc.get_pkg_info("yourpackage");
   return(pkgfilecache::fc.erase(pkg_info));

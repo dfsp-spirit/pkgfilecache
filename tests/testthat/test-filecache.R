@@ -18,8 +18,12 @@ test_that("We can download files to a local dir without MD5 check.", {
   expect_equal(deleted_again, c(FALSE, FALSE));
 
   # download the files
-  files_exist_now = fc.ensure_files_in_data_dir(pkg_info, local_relative_filenames, urls);
-  expect_equal(files_exist_now, c(TRUE, TRUE));
+  res = fc.ensure_files_in_data_dir(pkg_info, local_relative_filenames, urls);
+  expect_equal(res$file_status, c(TRUE, TRUE));
+  expect_equal(length(res$available), 2L);
+  expect_equal(length(res$missing), 0L);
+  expect_equal(res$available[1], "local_file1.txt");
+  expect_equal(res$available[2], "local_file2.txt");
 })
 
 test_that("We can erase the file cache and list all files in the cache", {
@@ -49,12 +53,16 @@ test_that("We can erase the file cache and list all files in the cache", {
   expect_equal(length(files_in_cache), 0);
   
   # download the files
-  files_exist_now = fc.ensure_files_in_data_dir(pkg_info, local_relative_filenames, urls);
-  expect_equal(files_exist_now, c(TRUE, TRUE));
+  res = fc.ensure_files_in_data_dir(pkg_info, local_relative_filenames, urls);
+  expect_equal(res$file_status, c(TRUE, TRUE));
   files_in_cache = fc.list(pkg_info);
   expect_equal(length(files_in_cache), 2);
   expect_true("local_file1.txt" %in% files_in_cache);
   expect_true("local_file2.txt" %in% files_in_cache);
+  expect_equal(length(res$available), 2L);
+  expect_equal(length(res$missing), 0L);
+  expect_equal(res$available[1], "local_file1.txt");
+  expect_equal(res$available[2], "local_file2.txt");
   
   # delete full cache
   fc.erase(pkg_info); # clear full cache
@@ -72,7 +80,7 @@ test_that("We can download files to a local dir with MD5 check.", {
   skip_if_offline(host = "raw.githubusercontent.com");
   
   pkg_info = fc.get_pkg_info("pkgfilecache");
-  local_relative_filenames = c("local_file1.txt", "local_file2.txt");
+  local_relative_filenames = c("local_file1_whatever.txt", "another_file2.some.ext");
   urls = c("https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/master/inst/extdata/file1.txt", "https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/master/inst/extdata/file2.txt");
   md5sums = c("35261471bcd198583c3805ee2a543b1f", "85ffec2e6efb476f1ee1e3e7fddd86de");
 
@@ -86,9 +94,36 @@ test_that("We can download files to a local dir with MD5 check.", {
   expect_equal(deleted_again, c(FALSE, FALSE));
 
   # download the files
-  files_exist_now = fc.ensure_files_in_data_dir(pkg_info, local_relative_filenames, urls, md5sums=md5sums);
-  expect_equal(files_exist_now, c(TRUE, TRUE));
+  res = fc.ensure_files_in_data_dir(pkg_info, local_relative_filenames, urls, md5sums=md5sums);
+  expect_equal(res$file_status, c(TRUE, TRUE));
+  expect_equal(length(res$available), 2L);
+  expect_equal(length(res$missing), 0L);
+  expect_equal(res$available[1], "local_file1_whatever.txt");
+  expect_equal(res$available[2], "another_file2.some.ext");
 })
+
+
+test_that("Files that cannot be downloaded will be reported as failed.", {
+  
+  skip_on_cran();
+  skip_if_offline(host = "raw.githubusercontent.com");
+  
+  pkg_info = fc.get_pkg_info("pkgfilecache");
+  local_relative_filenames = c("local_file1.txt", "will_not_make_it.txt");
+  urls = c("https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/master/inst/extdata/file1.txt", "https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/master/inst/extdata/nosuchfile");
+  md5sums = c("35261471bcd198583c3805ee2a543b1f", "85ffec2e6efb476f1ee1e3e7fddd86de");
+  
+  fc.erase(pkg_info);
+  
+  # download the files
+  res = fc.ensure_files_in_data_dir(pkg_info, local_relative_filenames, urls, md5sums=md5sums);
+  expect_equal(res$file_status, c(TRUE, FALSE));
+  expect_equal(length(res$available), 1L);
+  expect_equal(length(res$missing), 1L);
+  expect_equal(res$available[1], "local_file1.txt");
+  expect_equal(res$missing[1], "will_not_make_it.txt");
+})
+
 
 
 
@@ -159,8 +194,10 @@ test_that("One can get a file from package cache that exists", {
   md5sums = c("35261471bcd198583c3805ee2a543b1f");
   
   deleted = fc.remove_local_files(pkg_info, local_relative_filenames);
-  files_exist_now = fc.ensure_files_in_data_dir(pkg_info, local_relative_filenames, urls, md5sums=md5sums);
-  expect_equal(files_exist_now, c(TRUE));
+  res = fc.ensure_files_in_data_dir(pkg_info, local_relative_filenames, urls, md5sums=md5sums);
+  expect_equal(res$file_status, c(TRUE));
+  expect_equal(length(res$available), 1L);
+  expect_equal(length(res$missing), 0L);
   
   # Now check for a file that is known to exist:
   known_path = fc.get_absolute_path_for_filecache_relative_files(pkg_info, c(testfile_local));

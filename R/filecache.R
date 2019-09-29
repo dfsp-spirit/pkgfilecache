@@ -57,7 +57,7 @@ fc.get_absolute_path_for_filecache_relative_files <- function(pkg_info, relative
 #' 
 #' @param pkg_info, named list. Package identifier, see fc.get_pkg_info() on how to get one.
 #' 
-#' @return The return value of the unlink() call.
+#' @return integer. The return value of the unlink() call: 0 for success, 1 for failure. See the unlink() documentation for details.
 #' 
 #' 
 #' @export
@@ -65,6 +65,7 @@ fc.erase <- function(pkg_info) {
   datadir = fc.get_data_dir(pkg_info);
   return(unlink(datadir, recursive=TRUE));
 }
+
 
 #' @title List files that are available locally in the package cache.
 #' 
@@ -143,11 +144,13 @@ fc.check_files_in_data_dir <- function(pkg_info, relative_filenames, md5sums = N
 #' 
 #' @param on_errors, string. What to do if getting the files failed. One of c("warn", "stop", "ignore"). At the end, files are checked using `fc.check_files_in_data_dir`(including MD5 if given). Depending on the check results, the behaviours triggered are: "warn": Print a warning for each file that failed the check. "stop": Stop the script, i.e., the whole application. "ignore": Do nothing. You can still react using the return value.
 #' 
-#' @return The result of the final check using `fc.check_files_in_data_dir`.
+#' @param download_missing, logical. Whether to try downloading missing files. Defaults to TRUE.
+#' 
+#' @return Named list. The list has entries: "available": vector of strings. The names of the files that are available in the local file cache. You can access them using fc.getfile(). "missing": vector of strings. The names of the files that this function was unable to retrieve. "file_status": Logical array indicating whether the files are available. Order is identical to the one in argument 'relative_filenames'.
 #' 
 #' 
 #' @export
-fc.ensure_files_in_data_dir <- function(pkg_info, relative_filenames, urls, files_are_binary = NULL, md5sums = NULL, on_errors="warn") {
+fc.ensure_files_in_data_dir <- function(pkg_info, relative_filenames, urls, files_are_binary = NULL, md5sums = NULL, on_errors="warn", download_missing=TRUE) {
   if(length(relative_filenames) != length(urls)) {
     stop(sprintf("Data mismatch: received %d relative_filenames but %d urls. Lengths must be identical.", length(relative_filenames), length(urls)));
   }
@@ -170,16 +173,19 @@ fc.ensure_files_in_data_dir <- function(pkg_info, relative_filenames, urls, file
   if(!(dir.exists(datadir))) {
     dir.create(datadir, showWarnings = TRUE, recursive = TRUE);
   }
-  fc.download_files_with_md5_mismatch(local_files_absolute, local_files_md5_ok, urls, files_are_binary=files_are_binary);
+  
+  if(download_missing) {
+    fc.download_files_with_md5_mismatch(local_files_absolute, local_files_md5_ok, urls, files_are_binary=files_are_binary);
+  }
 
   # Check again whether md5sums are OK now
-  local_files_md5_ok_afterwards = fc.local_files_exist_md5(local_files_absolute, md5sums);
+  are_local_files_md5_ok_afterwards = fc.local_files_exist_md5(local_files_absolute, md5sums);
 
   if(on_errors %in% c("warn", "stop")) {
     num_errors = 0L;
     for (file_idx in 1:length(local_files_absolute)) {
       lfile = local_files_absolute[file_idx];
-      if(!(local_files_md5_ok_afterwards[file_idx])) {
+      if(!(are_local_files_md5_ok_afterwards[file_idx])) {
         num_errors = num_errors + 1L;
         if(is.null(md5sums)) {
           warning(sprintf("Failed to get file '%s' to path '%s'.\n", relative_filenames[file_idx], lfile));
@@ -193,7 +199,11 @@ fc.ensure_files_in_data_dir <- function(pkg_info, relative_filenames, urls, file
     }
   }
 
-  return(local_files_md5_ok_afterwards);
+  ret_list = list();
+  ret_list$available = relative_filenames[are_local_files_md5_ok_afterwards==TRUE];
+  ret_list$missing = relative_filenames[are_local_files_md5_ok_afterwards==FALSE];
+  ret_list$file_status = are_local_files_md5_ok_afterwards;
+  return(ret_list);
 }
 
 
@@ -311,7 +321,11 @@ fc.download_files_with_md5_mismatch <- function(local_files_absolute, local_file
         if(!(files_are_binary[file_idx])) {
           mode = "w";
         }
-        downloader::download(url=urls[file_idx], destfile=local_files_absolute[file_idx], quite=TRUE, mode=mode);
+        # Ignore all errors, which may be thrown depending on the download method and platform. We check later whether the files are available with correct MD5, which is much better anyways.
+        ignored = tryCatch({
+          downloader::download(url=urls[file_idx], destfile=local_files_absolute[file_idx], quite=TRUE, mode=mode);
+        }, error=function(e){}, warning=function(w){});
+        
     }
   }
 }

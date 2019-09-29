@@ -10,7 +10,7 @@ fc.erase(pkg_info)
 \item{pkg_info, }{named list. Package identifier, see fc.get_pkg_info() on how to get one.}
 }
 \value{
-The return value of the unlink() call.
+integer. The return value of the unlink() call: 0 for success, 1 for failure. See the unlink() documentation for details.
 }
 \description{
 Delete the full package cache directory for the given package.
