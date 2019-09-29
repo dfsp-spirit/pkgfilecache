@@ -44,7 +44,7 @@ Let's first make files hosted on our server available on the client, in the pack
 ```{r, eval = FALSE}
     library("pkgfilecache")
 
-    pkg_info = fc.get_pkg_info("yourpackage");   # Something to identify the package that uses the package file cache.
+    pkg_info = get_pkg_info("yourpackage");   # Something to identify the package that uses the package file cache.
     
     local_filenames = c("file1.txt", "file2.txt");    # How the files should be called in the local package file cache
     urls = c("https://your.server/yourpackage/large_file1.txt", "https://your.server/yourpackage/large_file2.txt"); # Remote URLs where to download files from
@@ -54,7 +54,7 @@ Let's first make files hosted on our server available on the client, in the pack
 Now it is time to make them available:
 
 ```{r, eval = FALSE}
-    res = fc.ensure_files_in_data_dir(pkg_info, local_filenames, urls, md5sums=md5sums);
+    res = ensure_files_available(pkg_info, local_filenames, urls, md5sums=md5sums);
 ```
 
 The return value `res` is a named list with several entries. The field `res$file_status` is a logical vector indicating for each file whether it now exists locally. Note that the function will first check to see whether the files are already in the package cache. If you supplied md5sums, they will also be checked. Only files which did not pass the check will be downloaded, so it is save to call this function every time you want to make sure that the files exist. (E.g., in example code you give). 
@@ -71,7 +71,7 @@ Let's now get the full path for a file in the package cash, so that we can use i
 
 ```{r, eval = FALSE}
     wanted_local_file = "file1.txt";
-    file_path = fc.getfile(pkg_info, wanted_local_file, mustWork=TRUE);
+    file_path = get_filepath(pkg_info, wanted_local_file, mustWork=TRUE);
 ```
 
 
@@ -130,16 +130,16 @@ Here are the functions:
 #'
 #' @export
 download_optional_data <- function() {
-  pkg_info = pkgfilecache::fc.get_pkg_info("yourpackage");        # to identify the package using the cache
+  pkg_info = pkgfilecache::get_pkg_info("yourpackage");        # to identify the package using the cache
   
   # Replace these with your optional data files.
   local_filenames = c("file1.txt", "file2.txt");    # How the files should be called in the local package file cache
   urls = c("https://your.server/yourpackage/large_file1.txt", "https://your.server/yourpackage/large_file2.txt"); # Remote URLs where to download files from
   md5sums = c("35261471bcd198583c3805ee2a543b1f", "85ffec2e6efb476f1ee1e3e7fddd86de");    # MD5 checksums. Optional but recommended.
   
-  res = pkgfilecache::fc.ensure_files_in_data_dir(pkg_info, local_filenames, urls, md5sums=md5sums);
-  res$file_status = NULL;
-  return(res);
+  cfiles = pkgfilecache::ensure_files_available(pkg_info, local_filenames, urls, md5sums=md5sums);
+  cfiles$file_status = NULL;
+  return(cfiles);
 }
 
 #' @title Get file names available in package cache.
@@ -150,8 +150,8 @@ download_optional_data <- function() {
 #'
 #' @export
 list_optional_data <- function() {
-  pkg_info = pkgfilecache::fc.get_pkg_info("yourpackage");
-  return(pkgfilecache::fc.list(pkg_info));
+  pkg_info = pkgfilecache::get_pkg_info("yourpackage");
+  return(pkgfilecache::list_available(pkg_info));
 }
 
 
@@ -160,9 +160,9 @@ list_optional_data <- function() {
 #' @return string. The full path to the file in the package cache. Use this in your application code to open the file.
 #'
 #' @export
-get_optional_data_file <- function(filename, mustWork=TRUE) {
-  pkg_info = pkgfilecache::fc.get_pkg_info("yourpackage");
-  return(pkgfilecache::fc.getfile(pkg_info, filename, mustWork=mustWork));
+get_optional_data_filepath <- function(filename, mustWork=TRUE) {
+  pkg_info = pkgfilecache::get_pkg_info("yourpackage");
+  return(pkgfilecache::get_filepath(pkg_info, filename, mustWork=mustWork));
 }
 
 
@@ -172,8 +172,8 @@ get_optional_data_file <- function(filename, mustWork=TRUE) {
 #'
 #' @export
 delete_all_optional_data <- function() {
-  pkg_info = pkgfilecache::fc.get_pkg_info("yourpackage");
-  return(pkgfilecache::fc.erase(pkg_info));
+  pkg_info = pkgfilecache::get_pkg_info("yourpackage");
+  return(pkgfilecache::erase_cache(pkg_info));
 }
 ```
 
