@@ -9,5 +9,4 @@ CHANGES
 \.travis\.yml
 appveyor\.yml
 ^appveyor\.yml$
-doc
 
