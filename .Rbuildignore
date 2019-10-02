@@ -4,9 +4,9 @@
 ^\.DS_Store$
 .*/\.DS_Store$
 .DS_Store$
-LICENSE_FULL
-CHANGES
-\.travis\.yml
-appveyor\.yml
+^LICENSE_FULL$
+^CHANGES$
+^README\.md$
+^\.travis\.yml$
 ^appveyor\.yml$
 
