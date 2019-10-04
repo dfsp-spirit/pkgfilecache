@@ -17,3 +17,9 @@ vector of strings. The absolute paths.
 \description{
 Construct absolute path for package cache files.
 }
+\examples{
+    rel_files = c("file1.txt", "file2.txt")
+    pkg_info = get_pkg_info("mypackage")
+    abs_paths = get_absolute_path_for_files(pkg_info, rel_files)
+
+}

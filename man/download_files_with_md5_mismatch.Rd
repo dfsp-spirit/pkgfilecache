@@ -19,4 +19,4 @@ download_files_with_md5_mismatch(local_files_absolute, local_files_md5_ok,
 \description{
 Download files marked as mismatched to package cache. You should check afterwards whether this was successful, e.g., via `files_exist_md5`.
 }
-\keyword{intern}
+\keyword{internal}

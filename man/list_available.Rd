@@ -15,3 +15,8 @@ vector of strings. The file names available, relative to the package cache.
 \description{
 List files that are available locally in the package cache.
 }
+\examples{
+    pkg_info = get_pkg_info("mypackage")
+    available_files_in_cache = list_available(pkg_info)
+
+}

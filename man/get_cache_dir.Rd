@@ -15,3 +15,9 @@ string. The absolute path of the package cache. It is constructed by calling `ra
 \description{
 Get the absolute path of the package cache.
 }
+\examples{
+    pkg_info = get_pkg_info("mypackage")
+    opt_data_dir = get_cache_dir(pkg_info)
+
+
+}

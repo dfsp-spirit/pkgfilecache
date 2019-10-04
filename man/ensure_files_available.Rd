@@ -29,3 +29,15 @@ Named list. The list has entries: "available": vector of strings. The names of t
 \description{
 Ensure all given files exist in the file cache, download them if they are not.
 }
+\examples{
+   pkg_info = get_pkg_info("mypackage");
+   local_relative_filenames = c("local_file1.txt", "local_file2.txt");
+   bu = "https://raw.githubusercontent.com/dfsp-spirit/";
+   url1 = paste(bu, "pkgfilecache/master/inst/extdata/file1.txt", sep="");
+   url2 = paste(bu, "pkgfilecache/master/inst/extdata/file2.txt", sep="");
+   urls = c(url1, url2);
+   md5sums = c("35261471bcd198583c3805ee2a543b1f", "85ffec2e6efb476f1ee1e3e7fddd86de");
+   res = ensure_files_available(pkg_info, local_relative_filenames, urls, md5sums=md5sums);
+   erase_file_cache(pkg_info); # clear full cache
+
+}

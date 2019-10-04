@@ -19,3 +19,9 @@ named list. This can be passed to all function which require a `pkg_info` argume
 \description{
 This functions constructs an object that uniquely identifies your package, i.e., the package that want to use the package cache. This is not a secret.
 }
+\examples{
+    pkg_info = get_pkg_info("mypackage")
+    pkg_info = get_pkg_info("mypackage", author="me")
+    pkg_info = get_pkg_info("mypackage", author="me", version="0.3")
+
+}

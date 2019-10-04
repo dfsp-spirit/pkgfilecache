@@ -17,3 +17,8 @@ logical vector. For each file, whether it was deleted. Note that files which did
 \description{
 Delete all the given files from the package cache.
 }
+\examples{
+    pkg_info = get_pkg_info("mypackage")
+    deleted = remove_cached_files(pkg_info, "some_file.txt")
+
+}

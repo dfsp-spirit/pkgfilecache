@@ -19,3 +19,8 @@ string. The path to the file. If mustWork=TRUE, the file is guaranteed to exist 
 \description{
 Retrieve the path to a single file from the package cache.
 }
+\examples{
+    pkg_info = get_pkg_info("mypackage")
+    full_path_of_file = get_filepath(pkg_info, "file1.txt", mustWork=FALSE)
+
+}

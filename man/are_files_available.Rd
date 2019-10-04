@@ -19,3 +19,8 @@ logical vector. For each file, whether it passed the check.
 \description{
 Check whether the given files exist in the package cache. You can pass MD5 sums, which will be verified and only files with correct MD5 hash will count as existing.
 }
+\examples{
+    pkg_info = get_pkg_info("mypackage")
+    is_available = are_files_available(pkg_info, c("file1.txt", "file2.txt"))
+
+}
