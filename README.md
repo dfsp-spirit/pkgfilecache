@@ -9,7 +9,7 @@ This package allows you to give users of your package an easy way to download an
 
 ## Installation
 
-The package is on [CRAN](https://CRAN.R-project.org/package=pkgfilecache), so you can simply:
+The [pkgfilecache package is on CRAN](https://CRAN.R-project.org/package=pkgfilecache), so you can simply:
 
 ```r
 install.packages("pkgfilecache")
@@ -28,6 +28,8 @@ Full documentation is built-in, and can be accessed from within R in the usual w
 library("pkgfilecache")
 browseVignettes("pkgfilecache")
 ```
+
+You can also [read the pkgfilecache vignette online at CRAN](https://cran.r-project.org/web/packages/pkgfilecache/vignettes/pkgfilecache.html).
  
 
 ## Build status
