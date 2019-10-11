@@ -286,17 +286,71 @@ get_filepath <- function(pkg_info, relative_filename, mustWork=TRUE) {
 #'
 #' @param datadir string, the path to the package cache directory.
 #'
-#' @param relative_filenames, vector of strings. A vector of filenames, relative to the package cache.
+#' @param relative_filenames, vector of strings. A vector of filenames, relative to the package cache. Can be a list of vectors, which will be interpreted as files with subdirs.
+#' 
+#' @return vector of strings, the absolute file names.
 #'
 #' @keywords internal
 get_abs_filenames <- function(datadir, relative_filenames) {
   num_files = length(relative_filenames);
   files_absolute = rep("", num_files);
   for (file_idx in 1:num_files) {
-    files_absolute[file_idx] = file.path(datadir, relative_filenames[file_idx]);
+    relative_file = relative_filenames[file_idx];
+    if(is.list(relative_filenames)) {  # The names include a sub directory
+      relative_file_path = do.call('file.path', as.list(unlist(relative_file)));
+      files_absolute[file_idx] = file.path(datadir, relative_file_path);
+    } else {
+      files_absolute[file_idx] = file.path(datadir, relative_file);
+    }
   }
   return(files_absolute);
 }
+
+
+#' @title Given a relative file, create the subdir in the package cache if needed.
+#' 
+#' @param pkg_info, named list. Package identifier, see get_pkg_info() on how to get one.
+#'
+#' @param relative_file, string or vector of strings. If a string, this function does nothing. If a vector of strings, a path is created from the elements using file.path, and the directory of it (determined by dirname()) is created.
+#'
+#' @keywords internal
+make_pgk_cache_subdir_for_relative_file <- function(pkg_info, relative_file) {
+  sd = get_relative_file_subdir(pkg_info, relative_file);
+  if(sd$has_subdir) {
+    if(!dir.exists(sd$absolute_subdir)) {
+      dir.create(sd$absolute_subdir, recursive = TRUE);
+    }
+  }
+}
+
+
+#' @title Given a relative file, determine its subdir in the package cache.
+#' 
+#' @param pkg_info, named list. Package identifier, see get_pkg_info() on how to get one.
+#'
+#' @param relative_file, string or vector of strings. If a string, this function does nothing. If a vector of strings, a path is created from the elements using file.path, and the directory of it (determined by dirname()) is created.
+#' 
+#' @return named list. The entries are: "has_subdir": logical, whether the file has a subdir. "relative_filepath": string. The input relative_file, flattened to a string. For files without subdir, this is identical to string in the parameter 'relative_file'. For others, it is the result of applying file.path() to the elements of the vector 'relative_file'. If "has_subdir" is TRUE, the following 2 fields also exist: "relative_subdir": string, subdir path relative to package cache dir. "absolute_subdir": string, absolute subdir path.
+#'
+#' @keywords internal
+get_relative_file_subdir <- function(pkg_info, relative_file) {
+  ret_list = list();
+  datadir = get_cache_dir(pkg_info);
+  if(length(relative_file) > 1) {    # This is a vector of strings
+    relative_filepath = do.call('file.path', as.list(relative_file));
+    relative_subdir = dirname(relative_filepath);
+    absolute_subdir = file.path(datadir, relative_subdir)
+    ret_list$has_subdir = TRUE;
+    ret_list$relative_subdir = relative_subdir;
+    ret_list$absolute_subdir = absolute_subdir;
+    ret_list$relative_filepath = relative_filepath; 
+  } else {          # This is a single string. (Note that is.vector() is TRUE for strings in R, that's why this test is so ugly.)
+    ret_list$has_subdir = FALSE;
+    ret_list$relative_filepath = relative_file;
+  }
+  return(ret_list);
+}
+
 
 
 #' @title Check whether files exist, optionally with MD5 check.

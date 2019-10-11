@@ -237,6 +237,16 @@ test_that("Relative filenames are translated to absolute ones", {
 })
 
 
+test_that("Relative filenames are translated to absolute ones for files with subdirs", {
+  filenames = list(c("dir1", "file1"), c("dir2", "file2"));
+  datadir = file.path("dir1", "subdir")
+  abs_names = get_abs_filenames(datadir, filenames);
+  expect_equal(abs_names[1], file.path(datadir, "dir1", "file1"));
+  expect_equal(abs_names[2], file.path(datadir, "dir2", "file2"));
+  expect_equal(length(abs_names), 2);
+})
+
+
 
 test_that("Using package version and author works", {
   skip_if_offline(host = "raw.githubusercontent.com");
@@ -255,3 +265,43 @@ test_that("Using package version and author works", {
 
   erase_file_cache(pkg_info); # clear full cache
 })
+
+
+test_that("Storing a file in a subdirectory of the package cache works", {
+  skip_if_offline(host = "raw.githubusercontent.com");
+  
+  pkg_info = get_pkg_info("pkgfilecache");
+  cache_dir = get_cache_dir(pkg_info);
+  
+  local_relative_filenames = list(c("dir1", "local_file1.txt"), c("dir2", "will_not_make_it.txt"));
+  urls = c("https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/master/inst/extdata/file1.txt", "https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/master/inst/extdata/nosuchfile");
+  md5sums = c("35261471bcd198583c3805ee2a543b1f", "85ffec2e6efb476f1ee1e3e7fddd86de");
+  
+  deleted = remove_cached_files(pkg_info, local_relative_filenames);
+  res = ensure_files_available(pkg_info, local_relative_filenames, urls, md5sums=md5sums);
+  expect_true(dir.exists(file.path(cache_dir, "dir1")));
+  expect_true(dir.exists(file.path(cache_dir, "dir2")));
+  expect_true(file.exists(file.path(cache_dir, "dir1", "local_file1.txt")));
+  expect_false(file.exists(file.path(cache_dir, "dir2", "will_not_make_it.txt")));
+  expect_equal(res$file_status, c(TRUE, FALSE));
+  expect_equal(length(res$available), 1L);
+  expect_equal(length(res$missing), 1L);
+  
+  erase_file_cache(pkg_info); # clear full cache
+  expect_false(dir.exists(file.path(cache_dir, "dir1")));
+  expect_false(dir.exists(file.path(cache_dir, "dir2")));
+  expect_false(file.exists(file.path(cache_dir, "dir1", "local_file1.txt")));
+  expect_false(file.exists(file.path(cache_dir, "dir2", "will_not_make_it.txt")));
+})
+
+
+test_that("Determining relative filenames works for strings and vectors of strings", {
+  pkg_info = get_pkg_info("pkgfilecache");
+  cache_dir = get_cache_dir(pkg_info);
+  
+  relative_file = "file1.txt"
+  sd = get_relative_file_subdir(pkg_info, relative_file);
+  expect_false(sd$has_subdir);
+  expect_equal(sd$relative_filepath, relative_file);
+})
+
