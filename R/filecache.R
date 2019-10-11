@@ -203,6 +203,8 @@ ensure_files_available <- function(pkg_info, relative_filenames, urls, files_are
   }
 
   datadir = get_cache_dir(pkg_info);
+  
+  make_pgk_cache_subdir_for_all_relative_files(pkg_info, relative_filenames);
 
   local_files_absolute = get_abs_filenames(datadir, relative_filenames);
   local_files_md5_ok = files_exist_md5(local_files_absolute, md5sums);
@@ -323,6 +325,21 @@ make_pgk_cache_subdir_for_relative_file <- function(pkg_info, relative_file) {
   }
 }
 
+#' @title Given a relative file, create the subdir in the package cache if needed.
+#' 
+#' @param pkg_info, named list. Package identifier, see get_pkg_info() on how to get one.
+#'
+#' @param relative_filenames, vector of strings. A vector of filenames, relative to the package cache. Can be a list of vectors, which will be interpreted as files with subdirs.
+#'
+#' @keywords internal
+make_pgk_cache_subdir_for_all_relative_files <- function(pkg_info, relative_files) {
+  if(is.list(relative_files)) {
+    for(rfile in relative_files) {
+      make_pgk_cache_subdir_for_relative_file(pkg_info, rfile);
+    }
+  }
+}
+
 
 #' @title Given a relative file, determine its subdir in the package cache.
 #' 
@@ -417,11 +434,15 @@ download_files_with_md5_mismatch <- function(local_files_absolute, local_files_m
         if(!(files_are_binary[file_idx])) {
           mode = "w";
         }
+        url=urls[file_idx];
+        destfile = local_files_absolute[file_idx];
+        cat(sprintf("Download file to '%s' from '%s'\n", destfile, url));
         # Ignore all errors, which may be thrown depending on the download method and platform. We check later whether the files are available with correct MD5, which is much better anyways.
         ignored = tryCatch({
-          downloader::download(url=urls[file_idx], destfile=local_files_absolute[file_idx], quite=TRUE, mode=mode);
-        }, error=function(e){}, warning=function(w){});
-
+          downloader::download(url=url, destfile=destfile, quite=TRUE, mode=mode);
+        }, 
+        error=function(e){ if(file.exists(destfile)) {file.remove(destfile);}},      # If warnings happen, something went wrong and an empty file may exist at destfile. Remove it.
+        warning=function(w){ if(file.exists(destfile)) {file.remove(destfile);}});
     }
   }
 }

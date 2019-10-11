@@ -287,6 +287,7 @@ test_that("Storing a file in a subdirectory of the package cache works", {
   expect_equal(length(res$available), 1L);
   expect_equal(length(res$missing), 1L);
   
+  
   erase_file_cache(pkg_info); # clear full cache
   expect_false(dir.exists(file.path(cache_dir, "dir1")));
   expect_false(dir.exists(file.path(cache_dir, "dir2")));

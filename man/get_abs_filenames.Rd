@@ -9,7 +9,10 @@ get_abs_filenames(datadir, relative_filenames)
 \arguments{
 \item{datadir}{string, the path to the package cache directory.}
 
-\item{relative_filenames, }{vector of strings. A vector of filenames, relative to the package cache.}
+\item{relative_filenames, }{vector of strings. A vector of filenames, relative to the package cache. Can be a list of vectors, which will be interpreted as files with subdirs.}
+}
+\value{
+vector of strings, the absolute file names.
 }
 \description{
 For each file, create a full path by joining the datadir with the filename.
