@@ -187,6 +187,5 @@ delete_all_optional_data <- function() {
 
 * Let the users of your package decide whether or not they want the optional data, by supplying an API as suggested above.
 * This needs the internet to work (at least once) for downloading. You should check the return values of the functions and be prepared for the case that the downloads failed.
-* Currently, writing files to a local directory structure (sub directories) under the package cache dir is not supported. All files go directly into that dir.
 * Nothing is special about the local package cache dir, and of course there is no way to enforce that other packages or applications do not mess with it and the data in it. You should never store secrets of any kind in that directory!
 * It is your responsibility not to write absurd amounts of data into that directory and tell the user in advance how much data you are roughly about to download.
