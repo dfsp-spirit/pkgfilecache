@@ -86,7 +86,7 @@ erase_file_cache <- function(pkg_info) {
 #'
 #' @param pkg_info, named list. Package identifier, see get_pkg_info() on how to get one.
 #'
-#' @return vector of strings. The file names available, relative to the package cache.
+#' @return vector of strings. The file names available, relative to the package cache. The returned names may include a subdirectory part. The subdirectories are not listed separately.
 #'
 #' @examples
 #'     pkg_info = get_pkg_info("mypackage")
@@ -95,7 +95,7 @@ erase_file_cache <- function(pkg_info) {
 #' @export
 list_available <- function(pkg_info) {
   datadir = get_cache_dir(pkg_info);
-  return(list.files(path = datadir, pattern = NULL, all.files = FALSE, full.names = FALSE, recursive = TRUE, ignore.case = FALSE, include.dirs = TRUE));
+  return(list.files(path = datadir, pattern = NULL, all.files = FALSE, full.names = FALSE, recursive = TRUE, ignore.case = FALSE, include.dirs = FALSE));
 }
 
 
