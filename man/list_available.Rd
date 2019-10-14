@@ -10,7 +10,7 @@ list_available(pkg_info)
 \item{pkg_info, }{named list. Package identifier, see get_pkg_info() on how to get one.}
 }
 \value{
-vector of strings. The file names available, relative to the package cache.
+vector of strings. The file names available, relative to the package cache. The returned names may include a subdirectory part. The subdirectories are not listed separately.
 }
 \description{
 List files that are available locally in the package cache.
