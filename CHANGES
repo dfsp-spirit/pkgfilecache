@@ -1,0 +1,12 @@
+pkgfilecache Changes
+=====================
+
+
+Version 0.1.1
+------------------
+- Added support for storing files in sub directories in the local file cache
+
+
+Version 0.1.0
+-------------
+- Initial release
