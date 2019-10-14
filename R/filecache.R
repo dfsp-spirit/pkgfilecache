@@ -95,7 +95,7 @@ erase_file_cache <- function(pkg_info) {
 #' @export
 list_available <- function(pkg_info) {
   datadir = get_cache_dir(pkg_info);
-  return(list.files(path = datadir, pattern = NULL, all.files = FALSE, full.names = FALSE, recursive = FALSE, ignore.case = FALSE, include.dirs = FALSE));
+  return(list.files(path = datadir, pattern = NULL, all.files = FALSE, full.names = FALSE, recursive = TRUE, ignore.case = FALSE, include.dirs = TRUE));
 }
 
 
