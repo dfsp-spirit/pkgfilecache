@@ -2,7 +2,7 @@ Package: pkgfilecache
 Type: Package
 Title: Download and Manage Optional Package Data
 Version: 0.1.0
-Author: Tim Schäfer
+Authors@R: person("Tim", "Schäfer", role = c("aut", "cre"), email = "ts+code@rcmd.org", comment = c(ORCID = "0000-0002-3683-8070"))
 Maintainer: Tim Schäfer <ts+code@rcmd.org>
 Description: Manage optional data for your package. The data can be hosted anywhere, and you have to give a Uniform Resource Locator (URL) for each file. File integrity checks are supported. This is useful for package authors who need to ship more than the 5 Megabyte of data currently allowed by the the Comprehensive R Archive Network (CRAN).
 License: MIT + file LICENSE
