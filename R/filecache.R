@@ -296,7 +296,7 @@ get_filepath <- function(pkg_info, relative_filename, mustWork=TRUE) {
 get_abs_filenames <- function(datadir, relative_filenames) {
   num_files = length(relative_filenames);
   files_absolute = rep("", num_files);
-  for (file_idx in 1:num_files) {
+  for (file_idx in seq_len(length(relative_filenames))) {
     relative_file = relative_filenames[file_idx];
     if(is.list(relative_filenames)) {  # The names include a sub directory
       relative_file_path = do.call('file.path', as.list(unlist(relative_file)));
