@@ -87,6 +87,7 @@ test_that("We can erase the file cache and list all files in the cache", {
 
 test_that("We can download files to a local dir with MD5 check.", {
   skip_if_offline(host = "raw.githubusercontent.com");
+  skip_if(tests_running_on_cran_under_macos(), message = "Skipping on CRAN under MacOS");
 
   pkg_info = get_pkg_info("pkgfilecache");
   local_relative_filenames = c("local_file1_whatever.txt", "another_file2.some.ext");
@@ -117,6 +118,7 @@ test_that("We can download files to a local dir with MD5 check.", {
 
 test_that("Files that cannot be downloaded will be reported as failed.", {
   skip_if_offline(host = "raw.githubusercontent.com");
+  skip_if(tests_running_on_cran_under_macos(), message = "Skipping on CRAN under MacOS");
 
   pkg_info = get_pkg_info("pkgfilecache");
   local_relative_filenames = c("local_file1.txt", "will_not_make_it.txt");
@@ -204,6 +206,7 @@ test_that("Existence of local file can be checked with MD5", {
 
 test_that("One can get a file from package cache that exists", {
   skip_if_offline(host = "raw.githubusercontent.com");
+  skip_if(tests_running_on_cran_under_macos(), message = "Skipping on CRAN under MacOS");
 
   pkg_info = get_pkg_info("pkgfilecache");
   testfile_local="local_file1.txt"
@@ -263,6 +266,7 @@ test_that("Relative filenames are translated to absolute ones for files with sub
 
 test_that("Using package version and author works", {
   skip_if_offline(host = "raw.githubusercontent.com");
+  skip_if(tests_running_on_cran_under_macos(), message = "Skipping on CRAN under MacOS");
 
   pkg_info = get_pkg_info("pkgfilecache", author="dfsp-spirit", version="0.1");
   testfile_local="local_file1.txt"
@@ -282,6 +286,7 @@ test_that("Using package version and author works", {
 
 test_that("Storing a file in a subdirectory of the package cache works", {
   skip_if_offline(host = "raw.githubusercontent.com");
+  skip_if(tests_running_on_cran_under_macos(), message = "Skipping on CRAN under MacOS");
   
   pkg_info = get_pkg_info("pkgfilecache");
   cache_dir = get_cache_dir(pkg_info);
@@ -291,7 +296,7 @@ test_that("Storing a file in a subdirectory of the package cache works", {
   md5sums = c("35261471bcd198583c3805ee2a543b1f", "85ffec2e6efb476f1ee1e3e7fddd86de");
   
   deleted = remove_cached_files(pkg_info, local_relative_filenames);
-  res = ensure_files_available(pkg_info, local_relative_filenames, urls, md5sums=md5sums);
+  res = expect_warning(ensure_files_available(pkg_info, local_relative_filenames, urls, md5sums=md5sums));
   expect_true(dir.exists(file.path(cache_dir, "dir1")));
   expect_true(dir.exists(file.path(cache_dir, "dir2")));
   expect_true(file.exists(file.path(cache_dir, "dir1", "local_file1.txt")));
