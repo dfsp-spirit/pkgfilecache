@@ -1,12 +1,19 @@
 pkgfilecache Changes
 =====================
 
+Version 0.1.2
+--------------
+- Fix bug in accessing files in local sub directories of the package cache
+- Document how to download files to a local subdir in the vignette
+- Document how to access files in local subdir in the vignette
+- Adapt tests to make package build for MacOS on CRAN
+
 
 Version 0.1.1
-------------------
+--------------
 - Added support for storing files in sub directories in the local file cache
 
 
 Version 0.1.0
--------------
+--------------
 - Initial release

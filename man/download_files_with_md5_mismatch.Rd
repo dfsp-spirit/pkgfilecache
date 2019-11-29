@@ -4,12 +4,8 @@
 \alias{download_files_with_md5_mismatch}
 \title{Download files marked as mismatch to package cache.}
 \usage{
-download_files_with_md5_mismatch(
-  local_files_absolute,
-  local_files_md5_ok,
-  urls,
-  files_are_binary = NULL
-)
+download_files_with_md5_mismatch(local_files_absolute, local_files_md5_ok,
+  urls, files_are_binary = NULL)
 }
 \arguments{
 \item{local_files_absolute, }{vector of strings. A vector of filenames, must already include the package cache part.}

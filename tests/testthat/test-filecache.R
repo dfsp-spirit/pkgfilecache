@@ -324,3 +324,19 @@ test_that("Determining relative filenames works for strings and vectors of strin
   expect_equal(sd$relative_filepath, relative_file);
 })
 
+
+test_that("Filenames are flattened", {
+  # a single charcter string is already flattened and should not be altered
+  fl = flatten_filepath("file1");
+  expect_true(is.character(fl));
+  expect_equal(nchar(fl), 5);
+  expect_equal(length(fl), 1);
+  expect_equal(fl, "file1");
+  
+  # a vector should be flattened.
+  flp = flatten_filepath(list(c("dir1", "file1")));
+  expect_true(is.character(flp));
+  expect_equal(length(flp), 1);
+  # the exect string returned is OS-dependent and not tested, as the tests should work independent of the OS.
+})
+

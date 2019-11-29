@@ -42,26 +42,35 @@ Let's first make files hosted on our server available on the client, in the pack
 
 
 ```{r, eval = FALSE}
-    library("pkgfilecache")
+library("pkgfilecache")
 
-    pkg_info = get_pkg_info("yourpackage");   # Something to identify the package that uses the package file cache.
+pkg_info = get_pkg_info("yourpackage");   # Something to identify the package that uses the package file cache.
 
-    local_filenames = c("file1.txt", "file2.txt");    # How the files should be called in the local package file cache
-    urls = c("https://your.server/yourpackage/large_file1.txt", "https://your.server/yourpackage/large_file2.txt"); # Remote URLs where to download files from
-    md5sums = c("35261471bcd198583c3805ee2a543b1f", "85ffec2e6efb476f1ee1e3e7fddd86de");    # MD5 checksums. Optional but recommended.
+local_filenames = c("file1.txt", "file2.txt");    # How the files should be called in the local package file cache
+urls = c("https://your.server/yourpackage/large_file1.txt", "https://your.server/yourpackage/large_file2.txt"); # Remote URLs where to download files from
+md5sums = c("35261471bcd198583c3805ee2a543b1f", "85ffec2e6efb476f1ee1e3e7fddd86de");    # MD5 checksums. Optional but recommended.
 ```
 
 Now it is time to make them available:
 
 ```{r, eval = FALSE}
-    res = ensure_files_available(pkg_info, local_filenames, urls, md5sums=md5sums);
+res = ensure_files_available(pkg_info, local_filenames, urls, md5sums=md5sums);
 ```
 
 The return value `res` is a named list with several entries. The field `res$file_status` is a logical vector indicating for each file whether it now exists locally. Note that the function will first check to see whether the files are already in the package cache. If you supplied md5sums, they will also be checked. Only files which did not pass the check will be downloaded, so it is save to call this function every time you want to make sure that the files exist. (E.g., in example code you give).
 
-You can also get a list of the filename which are now available (no matter whether they have been downloaded or where already available) from `res$available`. And you can get a list of file which should have been downloaded, but for which retrieval failed, from `res$missing`.
+You can also get a list of the filename which are now available (no matter whether they have been downloaded or were already available) from `res$available`. And you can get a list of file which should have been downloaded, but for which retrieval failed, from `res$missing`.
 
-Typically you would wrap the code above into a function within your package and call it something like `download_optional_data()`, see below.
+### Storing files in local subdirectories of the package cache
+
+The example above stores all files in the base directory of the package cache. To store a file in a local subdirectory, pass a list of vectors instead. Each entry in the list will be interpreted as the relative path to the local file:
+
+```{r, eval = FALSE}
+local_relative_filenames = list(c("dir1", "file1.txt"), c("dir2", "file2.txt"));
+```
+
+That example will download the files to `dir1/file1.txt`and `dir2/file2.txt`. The directories will be created automatically if they do not exist.
+
 
 
 ## Accessing a file from the local package cache
@@ -70,8 +79,15 @@ Let's now get the full path for a file in the package cash, so that we can use i
 
 
 ```{r, eval = FALSE}
-    wanted_local_file = "file1.txt";
-    file_path = get_filepath(pkg_info, wanted_local_file, mustWork=TRUE);
+wanted_local_file = "file1.txt";
+file_path = get_filepath(pkg_info, wanted_local_file, mustWork=TRUE);
+```
+
+
+If the file is in a local sub directory, use a list with one element, a vector of path elements:
+
+```{r, eval = FALSE}
+file_path = get_filepath(pkg_info, list(c("test", "file1")), mustWork=TRUE);
 ```
 
 
@@ -96,8 +112,9 @@ files_exist = are_files_available(pkg_info, local_filenames);  # no MD5 check
 files_exist_and_have_correct_md5 = are_files_available(pkg_info, local_filenames, md5sums=md5sums);  # with MD5 check
 ```
 
-
 The return values are logical vectors indicating for each file whether it exists (and, in the second example, whether the MD5 sum is as expected).
+
+
 
 # Giving users the option to download extra package data
 

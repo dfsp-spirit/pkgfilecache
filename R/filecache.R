@@ -269,12 +269,14 @@ get_filepath <- function(pkg_info, relative_filename, mustWork=TRUE) {
 
   abs_names = get_absolute_path_for_files(pkg_info, c(relative_filename));
   abs_file_name = abs_names[1];
+  
+  relative_filename_flattened = flatten_filepath(relative_filename);
 
   if(file_exists_in_pkgcache) {
     return(abs_file_name);
   } else {
     if(mustWork) {
-      stop(sprintf("File '%s' does not exist in local package cache at '%s', and mustWork is TRUE.\n", relative_filename, abs_file_name));
+      stop(sprintf("File '%s' (from '%s') does not exist in local package cache at '%s', and mustWork is TRUE.\n", relative_filename_flattened, relative_filename, abs_file_name));
     } else {
       return("");
     }
@@ -297,15 +299,25 @@ get_abs_filenames <- function(datadir, relative_filenames) {
   num_files = length(relative_filenames);
   files_absolute = rep("", num_files);
   for (file_idx in seq_len(length(relative_filenames))) {
-    relative_file = relative_filenames[file_idx];
-    if(is.list(relative_filenames)) {  # The names include a sub directory
-      relative_file_path = do.call('file.path', as.list(unlist(relative_file)));
-      files_absolute[file_idx] = file.path(datadir, relative_file_path);
-    } else {
-      files_absolute[file_idx] = file.path(datadir, relative_file);
-    }
+    relative_file = flatten_filepath(relative_filenames[file_idx]);
+    files_absolute[file_idx] = file.path(datadir, relative_file);
   }
   return(files_absolute);
+}
+
+
+#' @title Turn a filepath into a flat string.
+#' 
+#' @param filepath string or list of strings
+#' 
+#' @return string, the flattened filepath
+#' @keywords internal
+flatten_filepath <- function(filepath) {
+  if(is.list(filepath)) {
+    return(do.call('file.path', as.list(unlist(filepath))));
+  } else {
+    return(filepath);
+  }
 }
 
 
