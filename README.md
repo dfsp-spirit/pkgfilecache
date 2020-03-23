@@ -78,11 +78,11 @@ Unit tests can be run locally using `devtools::check()`, and CI is running on Tr
 
 ## A note regarding CRAN checks and pkgfilecache
 
-This is only relevant if you are using *pkgfilecache*in the unit tests or examples of your package **and** want to publish your package to CRAN.
+This is only relevant if you are using *pkgfilecache* in the unit tests or examples of your package **and** want to publish your package to CRAN.
 
-On the CRAN test servers, it is not allowed to write data into the user home of the user that runs the unit tests. But doing exactly that is the only purpose of the *pkgfilecache* package!
+On the CRAN test servers, it is not allowed to write data into the user home of the user that runs the unit tests -- but doing exactly that is the purpose of the *pkgfilecache* package!
 
-Currently, only the CRAN build hosts running MacOS seem to enforce this. So for MacOS, you will get a build error on the CRAN status page for your package. The solution is to disable the respective unit tests for MacOS on CRAN. You can check whether a test is run under these conditions, and skip it only then. Here is a function that checks the condition:
+Currently, only the CRAN build hosts running MacOS seem to enforce this. So for MacOS, you will get a build error on the CRAN status page for your package. The solution is to disable the respective unit tests for MacOS on CRAN. You can check whether a test is currently being run under these conditions, and skip it only then. The test will still run on your local machine and on your continuous integration server. Here is a function that checks the condition:
 
 ```r
 tests_running_on_cran_under_macos <- function() {
@@ -90,7 +90,7 @@ tests_running_on_cran_under_macos <- function() {
 }
 ```
 
-You can use this function to skip the test when appropriate. How to do that depends on your test suite, here is an example for `testthat`, you would use it in your test file, e.g., in `your_package/tests/testthat/test-whatever.R`:
+You can use this function to skip the test when appropriate. How to do that depends on your test suite, here is an example for the popular `testthat` suite. You would use the function from above in your test file, e.g., in `your_package/tests/testthat/test-whatever.R`, like this:
 
 ```r
 test_that("We can do stuff that requires optional data to be tested", {
