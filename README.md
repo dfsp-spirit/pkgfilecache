@@ -102,6 +102,11 @@ test_that("We can do stuff that requires optional data to be tested", {
 }
 ```
 
+## An Update regarding CRAN (Jan 2021)
+
+CRAN seems to enforce now that (January 2021) that the installation, unit tests and checks on their machines do not leave behind any files in the user directory. This is no problem, but it means that *if* you use this package to download test data onto CRAN servers (typically for the unit tests you run during package submission process), you will have to make sure you delete those data afterwards.
+
+If you use testthat, this can be done in a teardown file in tests/testthat/. See the testthat documentation, or have a look at [how I do it for my freesurferformats package here](https://github.com/dfsp-spirit/freesurferformats/blob/master/tests/testthat/teardown-cran.R). Make sure you only delete the data on the CRAN servers though: if your users have downloaded it, they most likely do not want it deleted just because they ran the unit tests!
 
 ## License
 
