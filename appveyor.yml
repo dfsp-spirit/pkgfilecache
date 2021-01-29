@@ -21,6 +21,18 @@ environment:
   # R_REMOTES_STANDALONE: true
 
 # Adapt as necessary starting from here
+  matrix:
+  - R_VERSION: devel
+
+  - R_VERSION: release
+
+  - R_VERSION: stable
+
+  - R_VERSION: patched
+
+  - R_VERSION: 3.5.3
+
+  - R_VERSION: 3.4.4
 
 build_script:
   - travis-tool.sh install_deps
