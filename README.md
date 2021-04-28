@@ -111,3 +111,8 @@ If you use testthat, this can be done in a teardown file in tests/testthat/. See
 ## License
 
 MIT
+
+## Alternatives
+
+* I haven't tried it myself, but according to [this article in the R journal](https://journal.r-project.org/archive/2017/RJ-2017-026/index.html), drat hosting of data could be an option.
+
