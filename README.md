@@ -5,7 +5,7 @@ GNU R package that allows package users to download and cache optional data file
 
 *Allow Users of Your Package to Download and Manage Optional Package Data*
 
-This package allows you to give users of your package an easy way to download and manage optional data for your package. The data can be hosted anywhere, and will be stored locally in a permanent directory called a *package file cache*. Checking of MD5 sums is supported.
+This package allows you to give users of your package an easy way to download and manage optional data for your package. The data can be hosted on your webserver or any location accessible via HTTP(S) over the internet, and will be stored locally in a permanent directory called a *package file cache*. Checking of MD5 sums is supported, and re-downloading only ever occurs if MD5 sums mismatch if they are available.
 
 ## Installation
 
@@ -111,3 +111,9 @@ If you use testthat, this can be done in a teardown file in tests/testthat/. See
 ## License
 
 MIT
+
+## Alternatives
+
+* I haven't tried it myself, but according to [this article in the R journal](https://journal.r-project.org/archive/2017/RJ-2017-026/index.html), drat hosting of data could be an option.
+* For BioConductor, there is [BiocFileCache](https://www.bioconductor.org/packages/release/bioc/html/BiocFileCache.html), but it's not gonna help you for CRAN.
+
