@@ -7,6 +7,5 @@
 ^LICENSE_FULL$
 ^CHANGES$
 ^README\.md$
-^\.travis\.yml$
 ^appveyor\.yml$
 
