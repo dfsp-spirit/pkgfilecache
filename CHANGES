@@ -1,6 +1,10 @@
 pkgfilecache Changes
 =====================
 
+Version 0.1.3
+-------------
+- Delete test data after tests on CRAN
+
 Version 0.1.2
 --------------
 - Fix bug in accessing files in local sub directories of the package cache

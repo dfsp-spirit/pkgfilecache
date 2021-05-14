@@ -4,9 +4,15 @@
 \alias{ensure_files_available}
 \title{Ensure all given files exist in the file cache, download them if they are not.}
 \usage{
-ensure_files_available(pkg_info, relative_filenames, urls,
-  files_are_binary = NULL, md5sums = NULL, on_errors = "warn",
-  download = TRUE)
+ensure_files_available(
+  pkg_info,
+  relative_filenames,
+  urls,
+  files_are_binary = NULL,
+  md5sums = NULL,
+  on_errors = "warn",
+  download = TRUE
+)
 }
 \arguments{
 \item{pkg_info, }{named list. Package identifier, see get_pkg_info() on how to get one.}

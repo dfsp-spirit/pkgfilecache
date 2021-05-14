@@ -71,15 +71,18 @@ You can also [read the pkgfilecache vignette online at CRAN](https://cran.r-proj
 
 Unit tests can be run locally using `devtools::check()`, and CI is running on Travis for Linux and AppVeyor for Windows:
 
-[![Build Status](https://travis-ci.org/dfsp-spirit/pkgfilecache.svg?branch=master)](https://travis-ci.org/dfsp-spirit/pkgfilecache)
+<!-- badges: start -->
+  [![R-CMD-check](https://github.com/dfsp-spirit/pkgfilecache/workflows/R-CMD-check/badge.svg)](https://github.com/dfsp-spirit/pkgfilecache/actions)
 
 [![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/dfsp-spirit/pkgfilecache?branch=master&svg=true)](https://ci.appveyor.com/project/dfsp-spirit/pkgfilecache)
+<!-- badges: end -->
 
 
 ## A note regarding CRAN checks and pkgfilecache
 
 This is only relevant if you are using *pkgfilecache* in the unit tests or examples of your package **and** want to publish your package to CRAN.
 
+<<<<<<< HEAD
 On the CRAN test servers, it is not allowed to write data into the user home of the user that runs the unit tests -- but doing exactly that is the purpose of the *pkgfilecache* package!
 
 Currently, only the CRAN build hosts running MacOS seem to enforce this. So for MacOS, you will get a build error on the CRAN status page for your package. The solution is to disable the respective unit tests for MacOS on CRAN. You can check whether a test is currently being run under these conditions, and skip it only then. The test will still run on your local machine and on your continuous integration server. Here is a function that checks the condition:
@@ -104,9 +107,7 @@ test_that("We can do stuff that requires optional data to be tested", {
 
 ## An Update regarding CRAN (Jan 2021)
 
-CRAN seems to enforce now that (January 2021) that the installation, unit tests and checks on their machines do not leave behind any files in the user directory. This is no problem, but it means that *if* you use this package to download test data onto CRAN servers (typically for the unit tests you run during package submission process), you will have to make sure you delete those data afterwards.
-
-If you use testthat, this can be done in a teardown file in tests/testthat/. See the testthat documentation, or have a look at [how I do it for my freesurferformats package here](https://github.com/dfsp-spirit/freesurferformats/blob/master/tests/testthat/teardown-cran.R). Make sure you only delete the data on the CRAN servers though: if your users have downloaded it, they most likely do not want it deleted just because they ran the unit tests!
+Please do not use this package in unit tests on CRAN, simply use `testthat::skip_on_cran()` to stop the tests that require/download extermal data from running on CRAN. You should test on your CI provider instead, and limit CRAN unit tests to those with data that can be generated in the test code.
 
 ## License
 
