@@ -2,12 +2,12 @@
 title: "pkgfilecache: Manage optional data for GNU R packages"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Managing external package data with pkgfilecache}
+  %\VignetteIndexEntry{pkgfilecache: Manage optional data for GNU R packages}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---
 
-# Managing external package data with pkgfilecache
+# pkgfilecache: Manage optional data for GNU R packages
 
 ## Audience
 

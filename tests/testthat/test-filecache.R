@@ -10,6 +10,7 @@ tests_running_on_cran_under_macos <- function() {
 }
 
 test_that("We can download files to a local dir without MD5 check.", {
+  testthat::skip_on_cran(); # Cannot download test data on CRAN.
   skip_if_offline(host = "raw.githubusercontent.com");
   skip_if(tests_running_on_cran_under_macos(), message = "Skipping on CRAN under MacOS");
 
@@ -41,6 +42,7 @@ test_that("We can download files to a local dir without MD5 check.", {
 
 
 test_that("We can erase the file cache and list all files in the cache", {
+  testthat::skip_on_cran(); # Cannot download test data on CRAN.
   skip_if_offline(host = "raw.githubusercontent.com");
   skip_if(tests_running_on_cran_under_macos(), message = "Skipping on CRAN under MacOS");
 
@@ -86,6 +88,7 @@ test_that("We can erase the file cache and list all files in the cache", {
 
 
 test_that("We can download files to a local dir with MD5 check.", {
+  testthat::skip_on_cran(); # Cannot download test data on CRAN.
   skip_if_offline(host = "raw.githubusercontent.com");
   skip_if(tests_running_on_cran_under_macos(), message = "Skipping on CRAN under MacOS");
 
@@ -117,6 +120,7 @@ test_that("We can download files to a local dir with MD5 check.", {
 
 
 test_that("Files that cannot be downloaded will be reported as failed.", {
+  testthat::skip_on_cran(); # Cannot download test data on CRAN.
   skip_if_offline(host = "raw.githubusercontent.com");
   skip_if(tests_running_on_cran_under_macos(), message = "Skipping on CRAN under MacOS");
 
@@ -205,6 +209,7 @@ test_that("Existence of local file can be checked with MD5", {
 
 
 test_that("One can get a file from package cache that exists", {
+  testthat::skip_on_cran(); # Cannot download test data on CRAN.
   skip_if_offline(host = "raw.githubusercontent.com");
   skip_if(tests_running_on_cran_under_macos(), message = "Skipping on CRAN under MacOS");
 
@@ -265,6 +270,7 @@ test_that("Relative filenames are translated to absolute ones for files with sub
 
 
 test_that("Using package version and author works", {
+  testthat::skip_on_cran(); # Cannot download test data on CRAN.
   skip_if_offline(host = "raw.githubusercontent.com");
   skip_if(tests_running_on_cran_under_macos(), message = "Skipping on CRAN under MacOS");
 
@@ -285,6 +291,7 @@ test_that("Using package version and author works", {
 
 
 test_that("Storing a file in a subdirectory of the package cache works", {
+  testthat::skip_on_cran(); # Cannot download test data on CRAN.
   skip_if_offline(host = "raw.githubusercontent.com");
   skip_if(tests_running_on_cran_under_macos(), message = "Skipping on CRAN under MacOS");
   
