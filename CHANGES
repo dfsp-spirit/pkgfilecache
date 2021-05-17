@@ -1,9 +1,18 @@
 pkgfilecache Changes
 =====================
 
+Version 0.1.4
+-------------
+- Disable all unit tests that require downloaded data on CRAN
+- Use the same name for the vignette title and the vignette index entry
+Note: This release contains no feature changes for package users, it was required for technical reasons related to CRAN.
+
+
 Version 0.1.3
 -------------
 - Delete test data after tests on CRAN
+Note: This release contains no feature changes for package users, it was required for technical reasons related to CRAN.
+
 
 Version 0.1.2
 --------------
