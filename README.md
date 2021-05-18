@@ -78,36 +78,10 @@ Unit tests can be run locally using `devtools::check()`, and CI is running on Tr
 <!-- badges: end -->
 
 
-## A note regarding CRAN checks and pkgfilecache
 
-This is only relevant if you are using *pkgfilecache* in the unit tests or examples of your package **and** want to publish your package to CRAN.
+## Important note regarding data downoads on CRAN servers (e.g., during unit tests)
 
-<<<<<<< HEAD
-On the CRAN test servers, it is not allowed to write data into the user home of the user that runs the unit tests -- but doing exactly that is the purpose of the *pkgfilecache* package!
-
-Currently, only the CRAN build hosts running MacOS seem to enforce this. So for MacOS, you will get a build error on the CRAN status page for your package. The solution is to disable the respective unit tests for MacOS on CRAN. You can check whether a test is currently being run under these conditions, and skip it only then. The test will still run on your local machine and on your continuous integration server. Here is a function that checks the condition:
-
-```r
-tests_running_on_cran_under_macos <- function() {
-  return(tolower(Sys.info()[["sysname"]]) == 'darwin' && !identical(Sys.getenv("NOT_CRAN"), "true"));
-}
-```
-
-You can use this function to skip the test when appropriate. How to do that depends on your test suite, here is an example for the popular `testthat` suite. You would use the function from above in your test file, e.g., in `your_package/tests/testthat/test-whatever.R`, like this:
-
-```r
-test_that("We can do stuff that requires optional data to be tested", {
-
-  skip_if(tests_running_on_cran_under_macos(), message = "Skipping on CRAN under MacOS, required test data cannot be downloaded.");
-  
-  # Download your test data here.
-  # Perform your testing here.
-}
-```
-
-## An Update regarding CRAN (Jan 2021)
-
-Please do not use this package in unit tests on CRAN, simply use `testthat::skip_on_cran()` to stop the tests that require/download extermal data from running on CRAN. You should test on your CI provider instead, and limit CRAN unit tests to those with data that can be generated in the test code.
+It is not allowed to store data in the user directory on CRAN servers, not even temporarily. So please do not use this package to download data into the user directory in unit tests on CRAN. You can use `testthat::skip_on_cran()` at the top of test functions that require/download external data from running on CRAN. You should test on your CI provider instead, and limit CRAN unit tests to those with data that can be generated in the test code.
 
 ## License
 
