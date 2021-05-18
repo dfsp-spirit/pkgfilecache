@@ -79,7 +79,7 @@ Unit tests can be run locally using `devtools::check()`, and CI is running on Tr
 
 
 
-## Important note regarding data downoads on CRAN servers (e.g., during unit tests)
+## Important note regarding data downloads on CRAN servers (e.g., during unit tests)
 
 It is not allowed to store data in the user directory on CRAN servers, not even temporarily. So please do not use this package to download data into the user directory in unit tests on CRAN. You can use `testthat::skip_on_cran()` at the top of test functions that require/download external data from running on CRAN. You should test on your CI provider instead, and limit CRAN unit tests to those with data that can be generated in the test code.
 
