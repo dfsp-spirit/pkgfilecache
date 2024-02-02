@@ -344,9 +344,9 @@ make_pgk_cache_subdir_for_relative_file <- function(pkg_info, relative_file) {
 #' @param relative_filenames, vector of strings. A vector of filenames, relative to the package cache. Can be a list of vectors, which will be interpreted as files with subdirs.
 #'
 #' @keywords internal
-make_pgk_cache_subdir_for_all_relative_files <- function(pkg_info, relative_files) {
-  if(is.list(relative_files)) {
-    for(rfile in relative_files) {
+make_pgk_cache_subdir_for_all_relative_files <- function(pkg_info, relative_filenames) {
+  if(is.list(relative_filenames)) {
+    for(rfile in relative_filenames) {
       make_pgk_cache_subdir_for_relative_file(pkg_info, rfile);
     }
   }

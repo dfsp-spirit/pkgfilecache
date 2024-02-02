@@ -1,6 +1,11 @@
 pkgfilecache Changes
 =====================
 
+Version 0.1.5
+-------------
+- Add curl as dependency (used in some tests)
+- Fix some very minor documentation errors in internal function (CRAN email requested it)
+
 Version 0.1.4
 -------------
 - Disable all unit tests that require downloaded data on CRAN

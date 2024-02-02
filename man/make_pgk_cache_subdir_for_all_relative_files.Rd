@@ -4,7 +4,7 @@
 \alias{make_pgk_cache_subdir_for_all_relative_files}
 \title{Given a relative file, create the subdir in the package cache if needed.}
 \usage{
-make_pgk_cache_subdir_for_all_relative_files(pkg_info, relative_files)
+make_pgk_cache_subdir_for_all_relative_files(pkg_info, relative_filenames)
 }
 \arguments{
 \item{pkg_info, }{named list. Package identifier, see get_pkg_info() on how to get one.}
