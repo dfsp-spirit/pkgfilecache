@@ -17,7 +17,9 @@ This is intended for GNU R package developers who want to give package users the
 
 When package authors want to ship data for their package, they will quickly hit the package size limit on CRAN (which is 5 MB as of September 2019). The solution is to host the data elsewhere and download it on demand when the user requests it, then store it for future use. This is what pkgfilecache allows you to do. You can put your files onto a web server of your choice, take the MD5 sums, and have pkgfilecache download them locally unless they already exist and have the correct MD5 hash. Users can then access the data in a convenient way, similar to accessing files shipped in `inst/extdata` via `system.file`. They can also erase the data if it is no longer needed.
 
-Technically, this package permanently stores the files under a subdir of the directory returned by `rappdirs::user_data_dir`. For my Ubuntu Linux system, that is `/home/myuser/.local/share`, but the exact location is operating system-dependent and you should not care about it.
+Technically, this package permanently stores the files in a subdirectory of the directory returned by `tools::R_user_dir(yourpackage, "data")` (for R version 4.0 or later), which is the location recommended by the CRAN repository policy for user-specific data and cache files. For my Ubuntu Linux system, that is `/home/myuser/.local/share/R/yourpackage`, but the exact location is operating system-dependent and you should not care about it. On R versions before 4.0, and if a cache from an older version of this package already exists at the legacy location, the directory returned by `rappdirs::user_data_dir` is used instead, so existing downloads are kept.
+
+You can also control the cache location with R options. Setting `options(pkgfilecache.cachedir = "/some/dir")` places the cache under `/some/dir` (the package name and optional version are appended). Setting `options(pkgfilecache.use_tempdir = TRUE)` places the cache in a subdirectory of the R session's temporary directory, which is useful for unit tests and CI systems that must not write to the user's home directory.
 
 ## Prequisites
 

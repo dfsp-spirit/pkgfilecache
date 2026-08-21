@@ -16,9 +16,9 @@ download_files_with_md5_mismatch(
 
 \item{local_files_md5_ok, }{logical vector. For each file, whether the local copy is OK. Only files for which this lists FALSE will be downloaded.}
 
-\item{urls, }{vector of strings. For each file, a remote URL where to download the file. Will be passed to `downloader::download`, see that function for URL encoding details.}
+\item{urls, }{vector of strings. For each file, a remote URL where to download the file. Will be passed to `curl::curl_download`, see that function for URL encoding details.}
 
-\item{files_are_binary, }{logical vector. For each file, whether it is binary. Only required on Windows, when files need to be downloaded. See `downloader::download` docs for details.}
+\item{files_are_binary, }{logical vector. For each file, whether it is binary. Only required on Windows, when files need to be downloaded. See `curl::curl_download` docs for details.}
 }
 \description{
 Download files marked as mismatched to package cache. You should check afterwards whether this was successful, e.g., via `files_exist_md5`.

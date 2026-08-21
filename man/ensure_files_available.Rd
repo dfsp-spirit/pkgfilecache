@@ -19,9 +19,9 @@ ensure_files_available(
 
 \item{relative_filenames, }{vector of strings. A vector of filenames, realtive to the package cache.}
 
-\item{urls, }{vector of strings. For each file, a remote URL where to download the file. Will be passed to `downloader::download`, see that function for URL encoding details.}
+\item{urls, }{vector of strings. For each file, a remote URL where to download the file. Will be passed to `curl::curl_download`, see that function for URL encoding details.}
 
-\item{files_are_binary, }{logical vector. For each file, whether it is binary. Only required on Windows, when files need to be downloaded. See `downloader::download` docs for details.}
+\item{files_are_binary, }{logical vector. For each file, whether it is binary. Only required on Windows, when files need to be downloaded. See `curl::curl_download` docs for details.}
 
 \item{md5sums, }{vector of strings or NULL. A list of MD5 checksums, one for each file in param 'relative_filenames', if not NULL. If given, the files will only be reported as existing if the MD5 sums match.}
 

@@ -12,9 +12,10 @@ BugReports: https://github.com/dfsp-spirit/pkgfilecache/issues
 Suggests:
     knitr,
     rmarkdown,
-    testthat (>= 2.1.0)
+    testthat (>= 2.1.0),
+    withr
 Imports:
     rappdirs,
     curl
 VignetteBuilder: knitr
-RoxygenNote: 7.2.3
+Config/roxygen2/version: 8.0.0

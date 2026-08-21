@@ -8,5 +8,5 @@
 ^CHANGES$
 ^README\.md$
 ^appveyor\.yml$
-
+renovate.json
 ^\.github$

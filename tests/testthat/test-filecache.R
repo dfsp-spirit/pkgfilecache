@@ -314,6 +314,60 @@ test_that("get_cache_dir uses the package version, not the R version, in the pat
 })
 
 
+test_that("get_cache_dir honors the pkgfilecache.cachedir option", {
+  cachedir_root = tempfile("pkgcache_test_root_");
+  withr::local_options(pkgfilecache.cachedir = cachedir_root, pkgfilecache.use_tempdir = FALSE);
+
+  pkg_info = get_pkg_info("mypackage");
+  expect_equal(get_cache_dir(pkg_info), file.path(cachedir_root, "mypackage"));
+
+  # The package version is appended if present.
+  pkg_info_v = get_pkg_info("mypackage", version = "0.1");
+  expect_equal(get_cache_dir(pkg_info_v), file.path(cachedir_root, "mypackage", "0.1"));
+});
+
+
+test_that("get_cache_dir honors the pkgfilecache.use_tempdir option", {
+  withr::local_options(pkgfilecache.cachedir = NULL, pkgfilecache.use_tempdir = TRUE);
+
+  pkg_info = get_pkg_info("mypackage");
+  expect_equal(get_cache_dir(pkg_info), file.path(tempdir(), "pkgfilecache", "mypackage"));
+});
+
+
+test_that("get_cache_dir defaults to tools::R_user_dir on R >= 4.0", {
+  skip_if(getRversion() < "4.0");
+  withr::local_options(pkgfilecache.cachedir = NULL, pkgfilecache.use_tempdir = FALSE);
+
+  # Use a package name for which no cache directory can exist, so the result is deterministic.
+  pkg_info = get_pkg_info("zzz_no_such_pkg_xyz");
+  expect_equal(get_cache_dir(pkg_info), tools::R_user_dir("zzz_no_such_pkg_xyz", "data"));
+
+  pkg_info_v = get_pkg_info("zzz_no_such_pkg_xyz", version = "0.1");
+  expect_equal(get_cache_dir(pkg_info_v), file.path(tools::R_user_dir("zzz_no_such_pkg_xyz", "data"), "0.1"));
+});
+
+
+test_that("pick_cache_dir reuses the legacy dir if the new default dir does not exist", {
+  root = tempfile("pkgcache_pick_");
+  new_dir = file.path(root, "new");
+  legacy_dir = file.path(root, "legacy");
+
+  # Neither exists -> the new dir is returned.
+  expect_equal(pick_cache_dir(new_dir, legacy_dir), new_dir);
+
+  # Only the legacy dir exists -> it is reused (migration, no re-download).
+  dir.create(legacy_dir, recursive = TRUE);
+  expect_equal(pick_cache_dir(new_dir, legacy_dir), legacy_dir);
+
+  # Both exist -> the new dir wins (already in use / migrated).
+  dir.create(new_dir, recursive = TRUE);
+  expect_equal(pick_cache_dir(new_dir, legacy_dir), new_dir);
+
+  unlink(root, recursive = TRUE);
+});
+
+
 test_that("Storing a file in a subdirectory of the package cache works", {
   testthat::skip_on_cran(); # Cannot download test data on CRAN.
   skip_if_offline(host = "raw.githubusercontent.com");

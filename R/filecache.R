@@ -2,7 +2,17 @@
 #'
 #' @param pkg_info, named list. Package identifier, see get_pkg_info() on how to get one.
 #'
-#' @return string. The absolute path of the package cache. It is constructed by calling `rappdirs::user_data_dir` with the package, author, and version if available. If the author is null, the package name is also used as the author name.
+#' @description Get the absolute path of the package cache directory for the given package.
+#'
+#'   By default, the cache is stored in the directory returned by `tools::R_user_dir(packagename, "data")` (for R version 4.0 or later), which is the location recommended by the CRAN repository policy for user-specific data and cache files. If a cache already exists at the legacy location used by older versions of this package (the directory returned by `rappdirs::user_data_dir`), that legacy directory is reused instead, so that existing downloads are not lost and do not have to be re-downloaded. On R versions before 4.0, the legacy `rappdirs::user_data_dir` location is used.
+#'
+#'   The location can be overridden with R options:
+#'   \itemize{
+#'     \item `pkgfilecache.cachedir`: If set to a directory path, that directory is used as the root of the package cache, and the package name (and version, if any) are appended to it. Useful to place the cache elsewhere, e.g., on a ramdisk or network drive.
+#'     \item `pkgfilecache.use_tempdir`: If set to `TRUE`, the cache is placed in a subdirectory of the R session's temporary directory (`tempdir()`). This is handy for unit tests and continuous integration, and in particular for tests that must not write to the user's home directory (e.g., on CRAN). The value of `pkgfilecache.cachedir` takes precedence if both options are set.
+#'   }
+#'
+#' @return string. The absolute path of the package cache directory. A subdirectory of the directory returned by `tools::R_user_dir` (for R version 4.0 or later) or `rappdirs::user_data_dir` (for older R versions), unless one of the options `pkgfilecache.cachedir` or `pkgfilecache.use_tempdir` is set.
 #'
 #' @examples
 #'     pkg_info = get_pkg_info("mypackage")
@@ -11,11 +21,66 @@
 #'
 #' @export
 get_cache_dir <- function(pkg_info) {
-  if(is.null(pkg_info$version)) {
-    return(rappdirs::user_data_dir(appname=pkg_info$packagename, appauthor=pkg_info$author));
-  } else {
-    return(rappdirs::user_data_dir(appname=pkg_info$packagename, appauthor=pkg_info$author, version=pkg_info$version));
+
+  # Optional override of the cache root directory via global options.
+  cachedir_root = getOption("pkgfilecache.cachedir");
+  if(is.null(cachedir_root) && isTRUE(getOption("pkgfilecache.use_tempdir"))) {
+    cachedir_root = file.path(tempdir(), "pkgfilecache");
   }
+  if(!is.null(cachedir_root)) {
+    return(pkg_cache_dir_with_version(file.path(cachedir_root, pkg_info$packagename), pkg_info));
+  }
+
+  if(getRversion() >= "4.0") {
+    # Default: the location recommended by the CRAN repository policy for
+    # user-specific data and cache files.
+    new_default_dir = pkg_cache_dir_with_version(tools::R_user_dir(pkg_info$packagename, "data"), pkg_info);
+    # If a cache from an older version of this package already exists at the
+    # legacy location, reuse it so that the user does not have to re-download
+    # all their files.
+    legacy_dir = rappdirs::user_data_dir(appname=pkg_info$packagename, appauthor=pkg_info$author, version=pkg_info$version);
+    return(pick_cache_dir(new_default_dir, legacy_dir));
+  }
+
+  # R versions before 4.0 do not have tools::R_user_dir().
+  return(rappdirs::user_data_dir(appname=pkg_info$packagename, appauthor=pkg_info$author, version=pkg_info$version));
+}
+
+
+#' @title Append the optional package version to a cache directory path.
+#'
+#' @param dir, string. The cache directory path (already including the package name).
+#'
+#' @param pkg_info, named list. Package identifier, see get_pkg_info() on how to get one.
+#'
+#' @return string. The directory path, with the version appended if the package info contains one.
+#'
+#' @keywords internal
+pkg_cache_dir_with_version <- function(dir, pkg_info) {
+  if(is.null(pkg_info$version)) {
+    return(dir);
+  } else {
+    return(file.path(dir, pkg_info$version));
+  }
+}
+
+
+#' @title Decide between the new and the legacy package cache directory.
+#'
+#' @description After migrating the default cache location to `tools::R_user_dir`, this function decides whether to use the new default directory or the legacy `rappdirs` directory: the legacy directory is used if it exists and the new one does not, so that users with an existing cache do not have to re-download their files.
+#'
+#' @param new_dir, string. The path of the new default cache directory (e.g., a subdirectory of `tools::R_user_dir`).
+#'
+#' @param legacy_dir, string. The path of the legacy cache directory (e.g., as returned by `rappdirs::user_data_dir`).
+#'
+#' @return string. Either `new_dir` or `legacy_dir`, depending on which directories exist.
+#'
+#' @keywords internal
+pick_cache_dir <- function(new_dir, legacy_dir) {
+  if(!dir.exists(new_dir) && dir.exists(legacy_dir)) {
+    return(legacy_dir);
+  }
+  return(new_dir);
 }
 
 

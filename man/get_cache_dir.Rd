@@ -10,10 +10,18 @@ get_cache_dir(pkg_info)
 \item{pkg_info, }{named list. Package identifier, see get_pkg_info() on how to get one.}
 }
 \value{
-string. The absolute path of the package cache. It is constructed by calling `rappdirs::user_data_dir` with the package, author, and version if available. If the author is null, the package name is also used as the author name.
+string. The absolute path of the package cache directory. A subdirectory of the directory returned by `tools::R_user_dir` (for R version 4.0 or later) or `rappdirs::user_data_dir` (for older R versions), unless one of the options `pkgfilecache.cachedir` or `pkgfilecache.use_tempdir` is set.
 }
 \description{
-Get the absolute path of the package cache.
+Get the absolute path of the package cache directory for the given package.
+
+  By default, the cache is stored in the directory returned by `tools::R_user_dir(packagename, "data")` (for R version 4.0 or later), which is the location recommended by the CRAN repository policy for user-specific data and cache files. If a cache already exists at the legacy location used by older versions of this package (the directory returned by `rappdirs::user_data_dir`), that legacy directory is reused instead, so that existing downloads are not lost and do not have to be re-downloaded. On R versions before 4.0, the legacy `rappdirs::user_data_dir` location is used.
+
+  The location can be overridden with R options:
+  \itemize{
+    \item `pkgfilecache.cachedir`: If set to a directory path, that directory is used as the root of the package cache, and the package name (and version, if any) are appended to it. Useful to place the cache elsewhere, e.g., on a ramdisk or network drive.
+    \item `pkgfilecache.use_tempdir`: If set to `TRUE`, the cache is placed in a subdirectory of the R session's temporary directory (`tempdir()`). This is handy for unit tests and continuous integration, and in particular for tests that must not write to the user's home directory (e.g., on CRAN). The value of `pkgfilecache.cachedir` takes precedence if both options are set.
+  }
 }
 \examples{
     pkg_info = get_pkg_info("mypackage")

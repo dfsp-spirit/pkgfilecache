@@ -34,6 +34,18 @@ You specify a list of optional data files, and package users can download them w
 Users can then access the file by the local filename. See the documentation for details.
 
 
+## Where the files are stored
+
+The package cache is a permanent directory on your system. By default it is located in the directory returned by `tools::R_user_dir(packagename, "data")` (for R version 4.0 or later), which is the location recommended by the CRAN repository policy for user-specific data and cache files (e.g., `~/.local/share/R/mypackage` on Linux). On R versions before 4.0, the directory returned by `rappdirs::user_data_dir` is used. If a cache from an older version of this package already exists at the legacy location, it is reused, so you do not have to download your files again.
+
+You can control the location with R options:
+
+* `options(pkgfilecache.cachedir = "/some/dir")`: Use `/some/dir` as the root of the package cache (the package name and optional version are appended). Useful for ramdisks or network drives.
+* `options(pkgfilecache.use_tempdir = TRUE)`: Use a subdirectory of the R session's temporary directory (`tempdir()`). Everything is cleaned up automatically when the R session ends. This is handy for unit tests and CI systems that must not write to the user's home directory.
+
+Use `get_cache_dir(pkg_info)` to find out where the cache is located in your current session.
+
+
 ## Example
 
 See the vignette for more detailed examples!
@@ -83,7 +95,7 @@ Unit tests can be run locally using `devtools::check()`, and CI is running on Gi
 
 ## Important note regarding data downloads on CRAN servers (e.g., during unit tests)
 
-It is not allowed to store data in the user directory on CRAN servers, not even temporarily. So please do not use this package to download data into the user directory in unit tests on CRAN. You can use `testthat::skip_on_cran()` at the top of test functions that require/download external data from running on CRAN. You should test on your CI provider instead, and limit CRAN unit tests to those with data that can be generated in the test code.
+It is not allowed to store data in the user directory on CRAN servers, not even temporarily. So please do not use this package to download data into the user directory in unit tests on CRAN. In your test setup, set `options(pkgfilecache.use_tempdir = TRUE)` to redirect all downloads to the R session's temporary directory, which is allowed, or use `testthat::skip_on_cran()` at the top of test functions that require/download external data from running on CRAN. You should test on your CI provider instead, and limit CRAN unit tests to those with data that can be generated in the test code.
 
 ## License
 
