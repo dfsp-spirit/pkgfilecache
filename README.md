@@ -59,11 +59,11 @@ See the vignette for more detailed examples!
   # 2) Where they can be downloaded
   urls = c("https://your.server/yourpackage/large_file1.txt", "https://your.server/yourpackage/large_file2.txt");
   # 3) Optional, but highly recommended: MD5 checksums for the files.
-  md5sums = c("35261471bcd198583c3805ee2a543b1f", "85ffec2e6efb476f1ee1e3e7fddd86de");    
+  md5sums = c("35261471bcd198583c3805ee2a543b1f", "85ffec2e6efb476f1ee1e3e7fddd86de");
 
   # Now use the package cache to get the files. Will only download if needed (file missing or MD5 mismatch):
   cfiles = pkgfilecache::ensure_files_available(pkg_info, local_filenames, urls, md5sums=md5sums);
-  
+
   # Great, now let's access a file:
   local_file_full_path = pkgfilecache::get_filepath(pkg_info, "file1.txt", mustWork=TRUE);
 ```
@@ -80,7 +80,7 @@ browseVignettes("pkgfilecache")
 ```
 
 You can also [read the pkgfilecache vignette online at CRAN](https://cran.r-project.org/web/packages/pkgfilecache/vignettes/pkgfilecache.html).
- 
+
 
 ## Build status
 

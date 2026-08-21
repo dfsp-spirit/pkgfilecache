@@ -28,7 +28,7 @@ You have put some file onto a server that can be accessed by the public via HTTP
 In the following example, we will assume that the package you develop (the one that requires the extra data in the package cache), is called `yourpackage`. And that you have these two files on the server:
 
 
-* file1.txt, md5=35261471bcd198583c3805ee2a543b1f  
+* file1.txt, md5=35261471bcd198583c3805ee2a543b1f
 * file2.txt, md5=85ffec2e6efb476f1ee1e3e7fddd86de
 
 

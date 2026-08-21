@@ -372,14 +372,14 @@ test_that("Storing a file in a subdirectory of the package cache works", {
   testthat::skip_on_cran(); # Cannot download test data on CRAN.
   skip_if_offline(host = "raw.githubusercontent.com");
   skip_if(tests_running_on_cran_under_macos(), message = "Skipping on CRAN under MacOS");
-  
+
   pkg_info = get_pkg_info("pkgfilecache");
   cache_dir = get_cache_dir(pkg_info);
-  
+
   local_relative_filenames = list(c("dir1", "local_file1.txt"), c("dir2", "will_not_make_it.txt"));
   urls = c("https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/master/inst/extdata/file1.txt", "https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/master/inst/extdata/nosuchfile");
   md5sums = c("35261471bcd198583c3805ee2a543b1f", "85ffec2e6efb476f1ee1e3e7fddd86de");
-  
+
   deleted = remove_cached_files(pkg_info, local_relative_filenames);
   res = expect_warning(ensure_files_available(pkg_info, local_relative_filenames, urls, md5sums=md5sums));
   expect_true(dir.exists(file.path(cache_dir, "dir1")));
@@ -389,8 +389,8 @@ test_that("Storing a file in a subdirectory of the package cache works", {
   expect_equal(res$file_status, c(TRUE, FALSE));
   expect_equal(length(res$available), 1L);
   expect_equal(length(res$missing), 1L);
-  
-  
+
+
   erase_file_cache(pkg_info); # clear full cache
   expect_false(dir.exists(file.path(cache_dir, "dir1")));
   expect_false(dir.exists(file.path(cache_dir, "dir2")));
@@ -402,7 +402,7 @@ test_that("Storing a file in a subdirectory of the package cache works", {
 test_that("Determining relative filenames works for strings and vectors of strings", {
   pkg_info = get_pkg_info("pkgfilecache");
   cache_dir = get_cache_dir(pkg_info);
-  
+
   relative_file = "file1.txt"
   sd = get_relative_file_subdir(pkg_info, relative_file);
   expect_false(sd$has_subdir);
@@ -417,7 +417,7 @@ test_that("Filenames are flattened", {
   expect_equal(nchar(fl), 5);
   expect_equal(length(fl), 1);
   expect_equal(fl, "file1");
-  
+
   # a vector should be flattened.
   flp = flatten_filepath(list(c("dir1", "file1")));
   expect_true(is.character(flp));

@@ -1,16 +1,21 @@
 pkgfilecache Changes
 =====================
 
-Version 0.2.0 (Current WIP)
+Version 0.2.0
 -------------
 - FIX: Replace the archived 'downloader' package with the modern 'curl' package for all file downloads. 'downloader' is no longer on CRAN.
 - DEV: Add a test that downloads and MD5-verifies the same set of (binary, HTTP) data files used by the 'brainloc' package, so such platform-specific download issues are caught on CI, including macOS.
 - FIX: Add the package version, not the R-version, to constructed path
+- NEW: Use the `tools::R_user_dir` directory as the default package cache location on R 4.0 or later (the location recommended by the CRAN repository policy for user-specific data and cache files), with the legacy `rappdirs` location used as fallback on older R versions. If a cache from an older version of this package already exists at the legacy location, it is reused to avoid re-downloading all files.
+- NEW: Allow overriding the package cache location with the R options `pkgfilecache.cachedir` (set a custom cache root directory) and `pkgfilecache.use_tempdir` (redirect the cache to the R session's temporary directory, `tempdir()`). The latter is useful for unit tests and CI systems that must not write to the user's home directory.
+- DEV: Run the package's own tests against the R session's temporary directory (via the `pkgfilecache.use_tempdir` option), so the tests never write to the user's home directory, e.g., during CRAN checks.
+
 
 Version 0.1.5
 -------------
 - Add curl as dependency (used in some tests)
 - Fix some very minor documentation errors in internal function (CRAN team requested it)
+
 
 Version 0.1.4
 -------------
