@@ -14,7 +14,7 @@ get_cache_dir <- function(pkg_info) {
   if(is.null(pkg_info$version)) {
     return(rappdirs::user_data_dir(appname=pkg_info$packagename, appauthor=pkg_info$author));
   } else {
-    return(rappdirs::user_data_dir(appname=pkg_info$packagename, appauthor=pkg_info$author, version=version));
+    return(rappdirs::user_data_dir(appname=pkg_info$packagename, appauthor=pkg_info$author, version=pkg_info$version));
   }
 }
 

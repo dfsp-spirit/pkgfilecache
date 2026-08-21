@@ -278,6 +278,14 @@ test_that("Using package version and author works", {
   skip_if(tests_running_on_cran_under_macos(), message = "Skipping on CRAN under MacOS");
 
   pkg_info = get_pkg_info("pkgfilecache", author="dfsp-spirit", version="0.1");
+
+  # The package version (not the R system version) must be part of the cache dir path.
+  # Regression test for a bug where get_cache_dir() accidentally used the R system
+  # version (base R's built-in 'version') instead of the package version.
+  cache_dir = get_cache_dir(pkg_info);
+  expect_true(grepl("0.1", cache_dir, fixed=TRUE), info=sprintf("Cache dir '%s' should contain package version '0.1'.", cache_dir));
+  expect_false(grepl(as.character(getRversion()), cache_dir, fixed=TRUE), info=sprintf("Cache dir '%s' should not contain R version '%s'.", cache_dir, as.character(getRversion())));
+
   testfile_local="local_file1.txt"
   local_relative_filenames = c(testfile_local);
   urls = c("https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/master/inst/extdata/file1.txt");
@@ -290,6 +298,19 @@ test_that("Using package version and author works", {
   expect_equal(length(res$missing), 0L);
 
   erase_file_cache(pkg_info); # clear full cache
+})
+
+
+test_that("get_cache_dir uses the package version, not the R version, in the path", {
+  # Regression test for a bug where get_cache_dir() used the R system version
+  # (base R's built-in 'version') instead of the package version when building
+  # the cache dir path. Offline test, so it also runs on CRAN.
+  pkg_info = get_pkg_info("pkgfilecache", author="dfsp-spirit", version="0.1");
+  cache_dir = get_cache_dir(pkg_info);
+
+  expect_true(grepl("0.1", cache_dir, fixed=TRUE), info=sprintf("Cache dir '%s' should contain package version '0.1'.", cache_dir));
+  r_version_string = as.character(getRversion());
+  expect_false(grepl(r_version_string, cache_dir, fixed=TRUE), info=sprintf("Cache dir '%s' should not contain R version '%s'.", cache_dir, r_version_string));
 })
 
 
