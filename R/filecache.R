@@ -163,9 +163,9 @@ are_files_available <- function(pkg_info, relative_filenames, md5sums = NULL) {
 #'
 #' @param relative_filenames, vector of strings. A vector of filenames, realtive to the package cache.
 #'
-#' @param urls, vector of strings. For each file, a remote URL where to download the file. Will be passed to `downloader::download`, see that function for URL encoding details.
+#' @param urls, vector of strings. For each file, a remote URL where to download the file. Will be passed to `curl::curl_download`, see that function for URL encoding details.
 #'
-#' @param files_are_binary, logical vector. For each file, whether it is binary. Only required on Windows, when files need to be downloaded. See `downloader::download` docs for details.
+#' @param files_are_binary, logical vector. For each file, whether it is binary. Only required on Windows, when files need to be downloaded. See `curl::curl_download` docs for details.
 #'
 #' @param md5sums, vector of strings or NULL. A list of MD5 checksums, one for each file in param 'relative_filenames', if not NULL. If given, the files will only be reported as existing if the MD5 sums match.
 #'
@@ -412,9 +412,9 @@ files_exist_md5 <- function(files_absolute, md5sums=NULL) {
 #'
 #' @param local_files_md5_ok, logical vector. For each file, whether the local copy is OK. Only files for which this lists FALSE will be downloaded.
 #'
-#' @param urls, vector of strings. For each file, a remote URL where to download the file. Will be passed to `downloader::download`, see that function for URL encoding details.
+#' @param urls, vector of strings. For each file, a remote URL where to download the file. Will be passed to `curl::curl_download`, see that function for URL encoding details.
 #'
-#' @param files_are_binary, logical vector. For each file, whether it is binary. Only required on Windows, when files need to be downloaded. See `downloader::download` docs for details.
+#' @param files_are_binary, logical vector. For each file, whether it is binary. Only required on Windows, when files need to be downloaded. See `curl::curl_download` docs for details.
 #'
 #' @keywords internal
 download_files_with_md5_mismatch <- function(local_files_absolute, local_files_md5_ok, urls, files_are_binary=NULL) {
@@ -451,7 +451,7 @@ download_files_with_md5_mismatch <- function(local_files_absolute, local_files_m
         cat(sprintf("Download file to '%s' from '%s'\n", destfile, url));
         # Ignore all errors, which may be thrown depending on the download method and platform. We check later whether the files are available with correct MD5, which is much better anyways.
         ignored = tryCatch({
-          downloader::download(url=url, destfile=destfile, quite=TRUE, mode=mode);
+          curl::curl_download(url=url, destfile=destfile, quiet=TRUE, mode=mode);
         }, 
         error=function(e){ if(file.exists(destfile)) {file.remove(destfile);}},      # If warnings happen, something went wrong and an empty file may exist at destfile. Remove it.
         warning=function(w){ if(file.exists(destfile)) {file.remove(destfile);}});
