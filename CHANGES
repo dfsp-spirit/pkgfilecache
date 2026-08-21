@@ -1,15 +1,16 @@
 pkgfilecache Changes
 =====================
 
-Version 0.1.6
+Version 0.2.0 (Current WIP)
 -------------
-- Replace the archived 'downloader' package with the modern 'curl' package for all file downloads. 'downloader' is no longer on CRAN and its download path (download.file with libcurl) could crash the R process on macOS (Apple Silicon) runners during R CMD check, e.g., when building the vignette of the 'brainloc' package which downloads several binary data files with MD5 verification.
-- Add a test that downloads and MD5-verifies the same set of (binary, HTTP) data files used by the 'brainloc' package, so such platform-specific download issues are caught on CI, including macOS.
+- FIX: Replace the archived 'downloader' package with the modern 'curl' package for all file downloads. 'downloader' is no longer on CRAN.
+- DEV: Add a test that downloads and MD5-verifies the same set of (binary, HTTP) data files used by the 'brainloc' package, so such platform-specific download issues are caught on CI, including macOS.
+- FIX: Add the package version, not the R-version, to constructed path
 
 Version 0.1.5
 -------------
 - Add curl as dependency (used in some tests)
-- Fix some very minor documentation errors in internal function (CRAN email requested it)
+- Fix some very minor documentation errors in internal function (CRAN team requested it)
 
 Version 0.1.4
 -------------
