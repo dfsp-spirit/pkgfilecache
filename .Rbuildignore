@@ -10,3 +10,5 @@
 ^appveyor\.yml$
 renovate.json
 ^\.github$
+^_pkgdown\.yml$
+^docs$

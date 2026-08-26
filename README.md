@@ -1,6 +1,13 @@
 # pkgfilecache
 R package that allows package users to download and cache optional data files in a local directory.
 
+
+<!-- badges: start -->
+  [![R-CMD-check](https://github.com/dfsp-spirit/pkgfilecache/workflows/R-CMD-check/badge.svg)](https://github.com/dfsp-spirit/pkgfilecache/actions)
+  [![pkgdown](https://img.shields.io/badge/pkgdown-website-orange.svg)](https://dfsp-spirit.github.io/pkgfilecache/)
+<!-- badges: end -->
+
+
 ## About
 
 *Allow Users of Your Package to Download and Manage Optional Package Data*
@@ -91,17 +98,7 @@ library("pkgfilecache")
 browseVignettes("pkgfilecache")
 ```
 
-You can also [read the pkgfilecache vignette online at CRAN](https://cran.r-project.org/web/packages/pkgfilecache/vignettes/pkgfilecache.html).
-
-
-## Build status
-
-Unit tests can be run locally using `devtools::check()`, and CI is running on Github:
-
-<!-- badges: start -->
-  [![R-CMD-check](https://github.com/dfsp-spirit/pkgfilecache/workflows/R-CMD-check/badge.svg)](https://github.com/dfsp-spirit/pkgfilecache/actions)
-
-<!-- badges: end -->
+You can also [read the pkgfilecache vignette online](https://dfsp-spirit.github.io/pkgfilecache/articles/pkgfilecache.html).
 
 
 
