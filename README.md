@@ -34,6 +34,16 @@ You specify a list of optional data files, and package users can download them w
 Users can then access the file by the local filename. See the documentation for details.
 
 
+## Downloading files in parallel
+
+By default, `ensure_files_available()` downloads the files that are missing (or that have an incorrect MD5 sum) in parallel: several files are downloaded at the same time using the `curl` multi interface, which can speed up downloading many small files considerably. The number of simultaneous connections defaults to 2, which is a safe choice for most servers and for CRAN checks.
+
+You can control the number of connections in two ways:
+
+* Per call, via the `num_connections` argument of `ensure_files_available()`. Use `num_connections=1` for strictly sequential downloads (e.g., when a server is slow or rate-limited), or a higher number to speed up downloading many files.
+* Globally, via the R option `options(pkgfilecache.num_connections = N)`. This changes the default for all calls that do not specify the `num_connections` argument themselves, for example the calls made by packages that use pkgfilecache to manage their optional data. Note that an explicit `num_connections` argument always takes precedence over the option.
+
+
 ## Where the files are stored
 
 The package cache is a permanent directory on your system. By default it is located in the directory returned by `tools::R_user_dir(packagename, "data")` (for R version 4.0 or later), which is the location recommended by the CRAN repository policy for user-specific data and cache files (e.g., `~/.local/share/R/mypackage` on Linux). On R versions before 4.0, the directory returned by `rappdirs::user_data_dir` is used. If a cache from an older version of this package already exists at the legacy location, it is reused, so you do not have to download your files again.

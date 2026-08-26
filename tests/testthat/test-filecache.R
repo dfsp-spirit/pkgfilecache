@@ -196,6 +196,45 @@ test_that("Parallel downloads (num_connections=2) work and clean up partial file
 
 
 
+test_that("The pkgfilecache.num_connections option sets the default number of connections.", {
+  # Offline: an invalid option value must be caught by the parameter validation,
+  # which proves that the option is read when no explicit num_connections is given.
+  pkg_info = get_pkg_info("pkgfilecache");
+  withr::local_options(pkgfilecache.num_connections = "not_a_number");
+  expect_error(ensure_files_available(pkg_info, "some_file.txt", "https://example.com/some_file.txt"));
+})
+
+
+
+test_that("Downloads work with the pkgfilecache.num_connections option set.", {
+  testthat::skip_on_cran(); # Cannot download test data on CRAN.
+  skip_if_offline(host = "raw.githubusercontent.com");
+  skip_if(tests_running_on_cran_under_macos(), message = "Skipping on CRAN under MacOS");
+
+  pkg_info = get_pkg_info("pkgfilecache");
+  local_relative_filenames = c("local_opt1.txt", "local_opt2.txt");
+  urls = c("https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/master/inst/extdata/file1.txt", "https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/master/inst/extdata/file2.txt");
+  md5sums = c("35261471bcd198583c3805ee2a543b1f", "85ffec2e6efb476f1ee1e3e7fddd86de");
+
+  # Option set to 1 -> downloads run sequentially, still verified by MD5.
+  withr::local_options(pkgfilecache.num_connections = 1);
+  erase_file_cache(pkg_info);
+  res = ensure_files_available(pkg_info, local_relative_filenames, urls, md5sums=md5sums);
+  expect_equal(res$file_status, c(TRUE, TRUE));
+  expect_equal(length(res$available), 2L);
+
+  # An explicit num_connections argument takes precedence over the option.
+  withr::local_options(pkgfilecache.num_connections = 1);
+  erase_file_cache(pkg_info);
+  res = ensure_files_available(pkg_info, local_relative_filenames, urls, md5sums=md5sums, num_connections=2);
+  expect_equal(res$file_status, c(TRUE, TRUE));
+  expect_equal(length(res$available), 2L);
+
+  erase_file_cache(pkg_info); # clear full cache
+})
+
+
+
 test_that("Relative filenames can be translated to absolute ones.", {
   pkg_info = get_pkg_info("pkgfilecache");
   files_rel = c("File1.txt", "file2.gz");

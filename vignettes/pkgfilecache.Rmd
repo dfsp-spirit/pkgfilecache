@@ -63,6 +63,10 @@ The return value `res` is a named list with several entries. The field `res$file
 
 You can also get a list of the filename which are now available (no matter whether they have been downloaded or were already available) from `res$available`. And you can get a list of file which should have been downloaded, but for which retrieval failed, from `res$missing`.
 
+### Downloading files in parallel
+
+`ensure_files_available` downloads missing files in parallel by default, using 2 simultaneous connections, which can speed up downloading many small files. You can control this per call with the `num_connections` argument (use `num_connections=1` for strictly sequential downloads), or change the default for all calls with the R option `options(pkgfilecache.num_connections = N)`, which is useful, e.g., for users who want to make packages download their optional data faster.
+
 ### Storing files in local subdirectories of the package cache
 
 The example above stores all files in the base directory of the package cache. To store a file in a local subdirectory, pass a list of vectors instead. Each entry in the list will be interpreted as the relative path to the local file:

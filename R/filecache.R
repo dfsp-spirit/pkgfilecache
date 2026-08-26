@@ -238,7 +238,7 @@ are_files_available <- function(pkg_info, relative_filenames, md5sums = NULL) {
 #'
 #' @param download, logical. Whether to try downloading missing files. Defaults to TRUE. Existing files (with correct MD5 if available) will never be downloaded.
 #'
-#' @param num_connections, integer. The number of parallel connections to use when downloading files. Defaults to 2. With more connections, several files are downloaded at the same time, which can speed up downloading many small files considerably. Use 1 for strictly sequential downloads. A high number of connections may overload the server or trigger rate limits.
+#' @param num_connections, integer. The number of parallel connections to use when downloading files. Defaults to 2. With more connections, several files are downloaded at the same time, which can speed up downloading many small files considerably. Use 1 for strictly sequential downloads. A high number of connections may overload the server or trigger rate limits. The default can be changed globally for all calls that do not specify this argument by setting the R option \code{pkgfilecache.num_connections}.
 #'
 #' @return Named list. The list has entries: "available": vector of strings. The names of the files that are available in the local file cache. You can access them using get_filepath(). "missing": vector of strings. The names of the files that this function was unable to retrieve. "file_status": Logical array indicating whether the files are available. Order is identical to the one in argument 'relative_filenames'.
 #'
@@ -254,7 +254,7 @@ are_files_available <- function(pkg_info, relative_filenames, md5sums = NULL) {
 #'    erase_file_cache(pkg_info); # clear full cache
 #'
 #' @export
-ensure_files_available <- function(pkg_info, relative_filenames, urls, files_are_binary = NULL, md5sums = NULL, on_errors="warn", download=TRUE, num_connections=2) {
+ensure_files_available <- function(pkg_info, relative_filenames, urls, files_are_binary = NULL, md5sums = NULL, on_errors="warn", download=TRUE, num_connections = getOption("pkgfilecache.num_connections", 2)) {
   if(length(relative_filenames) != length(urls)) {
     stop(sprintf("Data mismatch: received %d relative_filenames but %d urls. Lengths must be identical.", length(relative_filenames), length(urls)));
   }
@@ -487,10 +487,10 @@ files_exist_md5 <- function(files_absolute, md5sums=NULL) {
 #'
 #' @param files_are_binary, logical vector. For each file, whether it is binary. Only required on Windows, when files need to be downloaded. See `curl::curl_download` docs for details.
 #'
-#' @param num_connections, integer. The number of parallel connections to use when downloading files. Defaults to 2. Use 1 for strictly sequential downloads.
+#' @param num_connections, integer. The number of parallel connections to use when downloading files. Defaults to 2, or to the value of the R option \code{pkgfilecache.num_connections} if it is set. Use 1 for strictly sequential downloads.
 #'
 #' @keywords internal
-download_files_with_md5_mismatch <- function(local_files_absolute, local_files_md5_ok, urls, files_are_binary=NULL, num_connections=2) {
+download_files_with_md5_mismatch <- function(local_files_absolute, local_files_md5_ok, urls, files_are_binary=NULL, num_connections = getOption("pkgfilecache.num_connections", 2)) {
   num_files = length(local_files_absolute);
 
   if(length(local_files_absolute) != length(local_files_md5_ok)) {

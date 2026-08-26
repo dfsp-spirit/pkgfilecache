@@ -9,7 +9,7 @@ download_files_with_md5_mismatch(
   local_files_md5_ok,
   urls,
   files_are_binary = NULL,
-  num_connections = 2
+  num_connections = getOption("pkgfilecache.num_connections", 2)
 )
 }
 \arguments{
@@ -21,7 +21,7 @@ download_files_with_md5_mismatch(
 
 \item{files_are_binary, }{logical vector. For each file, whether it is binary. Only required on Windows, when files need to be downloaded. See `curl::curl_download` docs for details.}
 
-\item{num_connections, }{integer. The number of parallel connections to use when downloading files. Defaults to 2. Use 1 for strictly sequential downloads.}
+\item{num_connections, }{integer. The number of parallel connections to use when downloading files. Defaults to 2, or to the value of the R option \code{pkgfilecache.num_connections} if it is set. Use 1 for strictly sequential downloads.}
 }
 \description{
 Download files marked as mismatched to package cache. You should check afterwards whether this was successful, e.g., via `files_exist_md5`.
