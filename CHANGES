@@ -1,8 +1,14 @@
 pkgfilecache Changes
 =====================
 
-Version 0.2.0
--------------
+
+Version 0.3.0 -- Parallel Downloads
+------------------------------------
+- NEW: Parallel downloads: the new 'num_connections' argument of 'ensure_files_available' (default 2) downloads several files at the same time using the 'curl' multi interface, which speeds up downloading many small files. Use num_connections=1 for strictly sequential downloads.
+
+
+Version 0.2.0 -- Adjust default download dir, support tempdir, maintenance
+-----------------------------------------------------------------------------
 - FIX: Replace the archived 'downloader' package with the modern 'curl' package for all file downloads. 'downloader' is no longer on CRAN.
 - DEV: Add a test that downloads and MD5-verifies the same set of (binary, HTTP) data files used by the 'brainloc' package, so such platform-specific download issues are caught on CI, including macOS.
 - FIX: Add the package version, not the R-version, to constructed path
@@ -11,38 +17,38 @@ Version 0.2.0
 - DEV: Run the package's own tests against the R session's temporary directory (via the `pkgfilecache.use_tempdir` option), so the tests never write to the user's home directory, e.g., during CRAN checks.
 
 
-Version 0.1.5
--------------
+Version 0.1.5 -- curl and better docs
+--------------------------------------
 - Add curl as dependency (used in some tests)
 - Fix some very minor documentation errors in internal function (CRAN team requested it)
 
 
-Version 0.1.4
--------------
+Version 0.1.4 -- Improvements for CRAN
+---------------------------------------
 - Disable all unit tests that require downloaded data on CRAN
 - Use the same name for the vignette title and the vignette index entry
 Note: This release contains no feature changes for package users, it was required for technical reasons related to CRAN.
 
 
-Version 0.1.3
--------------
+Version 0.1.3 -- Improvements for CRAN
+----------------------------------------
 - Delete test data after tests on CRAN
 Note: This release contains no feature changes for package users, it was required for technical reasons related to CRAN.
 
 
-Version 0.1.2
---------------
+Version 0.1.2 -- Bug fixes and better docs
+------------------------------------------
 - Fix bug in accessing files in local sub directories of the package cache
 - Document how to download files to a local subdir in the vignette
 - Document how to access files in local subdir in the vignette
 - Adapt tests to make package build for MacOS on CRAN
 
 
-Version 0.1.1
---------------
+Version 0.1.1 -- Subdir support
+---------------------------------
 - Added support for storing files in sub directories in the local file cache
 
 
-Version 0.1.0
---------------
+Version 0.1.0 -- Initial Release
+----------------------------------
 - Initial release

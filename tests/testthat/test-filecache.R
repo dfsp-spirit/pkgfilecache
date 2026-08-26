@@ -148,6 +148,54 @@ test_that("Files that cannot be downloaded will be reported as failed.", {
 
 
 
+test_that("Downloads work sequentially with num_connections=1.", {
+  testthat::skip_on_cran(); # Cannot download test data on CRAN.
+  skip_if_offline(host = "raw.githubusercontent.com");
+  skip_if(tests_running_on_cran_under_macos(), message = "Skipping on CRAN under MacOS");
+
+  pkg_info = get_pkg_info("pkgfilecache");
+  local_relative_filenames = c("local_seq1.txt", "local_seq2.txt");
+  urls = c("https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/master/inst/extdata/file1.txt", "https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/master/inst/extdata/file2.txt");
+  md5sums = c("35261471bcd198583c3805ee2a543b1f", "85ffec2e6efb476f1ee1e3e7fddd86de");
+
+  erase_file_cache(pkg_info);
+
+  res = ensure_files_available(pkg_info, local_relative_filenames, urls, md5sums=md5sums, num_connections=1);
+  expect_equal(res$file_status, c(TRUE, TRUE));
+  expect_equal(length(res$available), 2L);
+  expect_equal(length(res$missing), 0L);
+
+  erase_file_cache(pkg_info); # clear full cache
+})
+
+
+
+test_that("Parallel downloads (num_connections=2) work and clean up partial files on failure.", {
+  testthat::skip_on_cran(); # Cannot download test data on CRAN.
+  skip_if_offline(host = "raw.githubusercontent.com");
+  skip_if(tests_running_on_cran_under_macos(), message = "Skipping on CRAN under MacOS");
+
+  pkg_info = get_pkg_info("pkgfilecache");
+  local_relative_filenames = c("local_par_ok.txt", "local_par_missing.txt");
+  urls = c("https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/master/inst/extdata/file1.txt", "https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/master/inst/extdata/nosuchfile");
+  md5sums = c("35261471bcd198583c3805ee2a543b1f", "85ffec2e6efb476f1ee1e3e7fddd86de");
+
+  erase_file_cache(pkg_info);
+
+  res = ensure_files_available(pkg_info, local_relative_filenames, urls, md5sums=md5sums, on_errors="ignore", num_connections=2);
+  expect_equal(res$file_status, c(TRUE, FALSE));
+  expect_equal(length(res$available), 1L);
+  expect_equal(length(res$missing), 1L);
+  expect_equal(res$missing[1], "local_par_missing.txt");
+
+  # A failed download must not leave a partial file behind.
+  expect_false(file.exists(file.path(get_cache_dir(pkg_info), "local_par_missing.txt")));
+
+  erase_file_cache(pkg_info); # clear full cache
+})
+
+
+
 test_that("Relative filenames can be translated to absolute ones.", {
   pkg_info = get_pkg_info("pkgfilecache");
   files_rel = c("File1.txt", "file2.gz");

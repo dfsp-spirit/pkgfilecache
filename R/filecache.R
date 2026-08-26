@@ -238,6 +238,8 @@ are_files_available <- function(pkg_info, relative_filenames, md5sums = NULL) {
 #'
 #' @param download, logical. Whether to try downloading missing files. Defaults to TRUE. Existing files (with correct MD5 if available) will never be downloaded.
 #'
+#' @param num_connections, integer. The number of parallel connections to use when downloading files. Defaults to 2. With more connections, several files are downloaded at the same time, which can speed up downloading many small files considerably. Use 1 for strictly sequential downloads. A high number of connections may overload the server or trigger rate limits.
+#'
 #' @return Named list. The list has entries: "available": vector of strings. The names of the files that are available in the local file cache. You can access them using get_filepath(). "missing": vector of strings. The names of the files that this function was unable to retrieve. "file_status": Logical array indicating whether the files are available. Order is identical to the one in argument 'relative_filenames'.
 #'
 #' @examples
@@ -252,7 +254,7 @@ are_files_available <- function(pkg_info, relative_filenames, md5sums = NULL) {
 #'    erase_file_cache(pkg_info); # clear full cache
 #'
 #' @export
-ensure_files_available <- function(pkg_info, relative_filenames, urls, files_are_binary = NULL, md5sums = NULL, on_errors="warn", download=TRUE) {
+ensure_files_available <- function(pkg_info, relative_filenames, urls, files_are_binary = NULL, md5sums = NULL, on_errors="warn", download=TRUE, num_connections=2) {
   if(length(relative_filenames) != length(urls)) {
     stop(sprintf("Data mismatch: received %d relative_filenames but %d urls. Lengths must be identical.", length(relative_filenames), length(urls)));
   }
@@ -267,6 +269,10 @@ ensure_files_available <- function(pkg_info, relative_filenames, urls, files_are
     stop(sprintf("Parameter 'on_errors' must be one of c('warn', 'stop', 'ignore') nut was '%s'.\n", on_errors));
   }
 
+  if(! is.numeric(num_connections) || length(num_connections) != 1 || num_connections < 1) {
+    stop(sprintf("Parameter 'num_connections' must be a single positive number, but was '%s'.\n", num_connections));
+  }
+
   datadir = get_cache_dir(pkg_info);
 
   make_pgk_cache_subdir_for_all_relative_files(pkg_info, relative_filenames);
@@ -279,7 +285,7 @@ ensure_files_available <- function(pkg_info, relative_filenames, urls, files_are
   }
 
   if(download) {
-    download_files_with_md5_mismatch(local_files_absolute, local_files_md5_ok, urls, files_are_binary=files_are_binary);
+    download_files_with_md5_mismatch(local_files_absolute, local_files_md5_ok, urls, files_are_binary=files_are_binary, num_connections=num_connections);
 
     # Check again whether md5sums are OK now
     are_local_files_md5_ok_afterwards = files_exist_md5(local_files_absolute, md5sums);
@@ -481,8 +487,10 @@ files_exist_md5 <- function(files_absolute, md5sums=NULL) {
 #'
 #' @param files_are_binary, logical vector. For each file, whether it is binary. Only required on Windows, when files need to be downloaded. See `curl::curl_download` docs for details.
 #'
+#' @param num_connections, integer. The number of parallel connections to use when downloading files. Defaults to 2. Use 1 for strictly sequential downloads.
+#'
 #' @keywords internal
-download_files_with_md5_mismatch <- function(local_files_absolute, local_files_md5_ok, urls, files_are_binary=NULL) {
+download_files_with_md5_mismatch <- function(local_files_absolute, local_files_md5_ok, urls, files_are_binary=NULL, num_connections=2) {
   num_files = length(local_files_absolute);
 
   if(length(local_files_absolute) != length(local_files_md5_ok)) {
@@ -505,8 +513,16 @@ download_files_with_md5_mismatch <- function(local_files_absolute, local_files_m
     }
   }
 
-  for (file_idx in 1:num_files) {
-    if(!(local_files_md5_ok[file_idx])) {
+  if(! is.numeric(num_connections) || length(num_connections) != 1 || num_connections < 1) {
+    stop(sprintf("Parameter 'num_connections' must be a single positive number, but was '%s'.\n", num_connections));
+  }
+
+  files_to_download = which(!local_files_md5_ok);
+
+  if(length(files_to_download) > 0) {
+    if(num_connections <= 1) {
+      # Sequential downloads: one file at a time, like always.
+      for (file_idx in files_to_download) {
         mode = "wb";
         if(!(files_are_binary[file_idx])) {
           mode = "w";
@@ -515,11 +531,60 @@ download_files_with_md5_mismatch <- function(local_files_absolute, local_files_m
         destfile = local_files_absolute[file_idx];
         cat(sprintf("Download file to '%s' from '%s'\n", destfile, url));
         # Ignore all errors, which may be thrown depending on the download method and platform. We check later whether the files are available with correct MD5, which is much better anyways.
-        ignored = tryCatch({
+        tryCatch({
           curl::curl_download(url=url, destfile=destfile, quiet=TRUE, mode=mode);
         },
         error=function(e){ if(file.exists(destfile)) {file.remove(destfile);}},      # If warnings happen, something went wrong and an empty file may exist at destfile. Remove it.
         warning=function(w){ if(file.exists(destfile)) {file.remove(destfile);}});
+      }
+    } else {
+      # Parallel downloads via the curl multi interface. All transfers run
+      # concurrently inside the single R process, up to 'num_connections'
+      # connections at the same time. No extra R processes or threads are
+      # spawned, and no new dependencies are needed (curl is already one).
+      pool = curl::new_pool(total_con = num_connections, host_con = num_connections);
+      for (file_idx in files_to_download) {
+        url = urls[file_idx];
+        destfile = local_files_absolute[file_idx];
+        cat(sprintf("Download file to '%s' from '%s'\n", destfile, url));
+        add_file_download_to_curl_pool(url, destfile, pool);
+      }
+      curl::multi_run(pool = pool);
     }
   }
+}
+
+
+#' @title Add a single file download to a curl multi pool.
+#'
+#' @description Add a single file download to a curl multi pool for parallel downloading. The file is streamed to disk as soon as data arrives, using curl's internal file writer (which opens the file lazily and closes it when the transfer completes). On any failure (connection error or HTTP status >= 300), the destination file is removed, so that a partially downloaded file is never mistaken for a successfully downloaded one. This function is only used internally by \code{download_files_with_md5_mismatch}.
+#'
+#' @param url, string. The URL to download.
+#'
+#' @param destfile, string. The absolute path of the local file to write to.
+#'
+#' @param pool, curl pool. The pool to add the download to, see \code{curl::new_pool}.
+#'
+#' @return NULL, invisibly.
+#'
+#' @keywords internal
+add_file_download_to_curl_pool <- function(url, destfile, pool) {
+  h = curl::new_handle(url = url);
+  curl::multi_add(h, pool = pool, data = destfile, done = function(res, ...) {
+    # The transfer completed and an HTTP response was received (this is also
+    # the case for error status codes like 404). If the response indicated an
+    # error, remove the file, which may contain the server's error page.
+    if(!is.null(res$status_code) && res$status_code >= 300) {
+      if(file.exists(destfile)) {
+        tryCatch(file.remove(destfile), error = function(e) {});
+      }
+    }
+  }, fail = function(err, ...) {
+    # Connection-level failure (e.g., DNS or connection refused): remove any
+    # partially downloaded file.
+    if(file.exists(destfile)) {
+      tryCatch(file.remove(destfile), error = function(e) {});
+    }
+  });
+  return(invisible(NULL));
 }
