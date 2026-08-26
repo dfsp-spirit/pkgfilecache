@@ -4,7 +4,7 @@ R package that allows package users to download and cache optional data files in
 
 <!-- badges: start -->
   [![R-CMD-check](https://github.com/dfsp-spirit/pkgfilecache/workflows/R-CMD-check/badge.svg)](https://github.com/dfsp-spirit/pkgfilecache/actions)
-  [![pkgdown](https://img.shields.io/badge/pkgdown-website-orange.svg)](https://dfsp-spirit.github.io/pkgfilecache/)
+  [![pkgdown](https://img.shields.io/badge/pkgdown-website-green.svg)](https://dfsp-spirit.github.io/pkgfilecache/)
 <!-- badges: end -->
 
 
