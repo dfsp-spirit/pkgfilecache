@@ -98,7 +98,7 @@ library("pkgfilecache")
 browseVignettes("pkgfilecache")
 ```
 
-You can also [read the pkgfilecache vignette online](https://dfsp-spirit.github.io/pkgfilecache/articles/pkgfilecache.html).
+You can also [read the pkgfilecache vignette online](https://dfsp-spirit.github.io/pkgfilecache/articles/pkgfilecache.html) and [read the full API docs online](https://dfsp-spirit.github.io/pkgfilecache/reference/index.html).
 
 
 
