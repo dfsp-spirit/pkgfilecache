@@ -65,7 +65,7 @@ You can also get a list of the filename which are now available (no matter wheth
 
 ### Downloading files in parallel
 
-`ensure_files_available` downloads missing files in parallel by default, using 2 simultaneous connections, which can speed up downloading many small files. You can control this per call with the `num_connections` argument (use `num_connections=1` for strictly sequential downloads), or change the default for all calls with the R option `options(pkgfilecache.num_connections = N)`, which is useful, e.g., for users who want to make packages download their optional data faster.
+`ensure_files_available` downloads missing files in parallel by default, using 2 simultaneous connections, which can speed up downloading many small files. You can control this per call with the `num_connections` argument (use `num_connections=1` for strictly sequential downloads), or change the default for all calls with the R option `options(pkgfilecache.num_connections = N)`, which is useful, e.g., for users who want to make packages download their optional data faster. Downloads that fail are retried automatically (up to `num_retries` times, default 2) using fresh connections, so transient connection problems do not cause files to be reported as missing.
 
 ### Storing files in local subdirectories of the package cache
 

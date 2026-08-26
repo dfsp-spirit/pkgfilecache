@@ -206,6 +206,14 @@ test_that("The pkgfilecache.num_connections option sets the default number of co
 
 
 
+test_that("The num_retries argument is validated.", {
+  # Offline: an invalid num_retries value must be caught by the parameter validation.
+  pkg_info = get_pkg_info("pkgfilecache");
+  expect_error(ensure_files_available(pkg_info, "some_file.txt", "https://example.com/some_file.txt", num_retries = -1));
+})
+
+
+
 test_that("Downloads work with the pkgfilecache.num_connections option set.", {
   testthat::skip_on_cran(); # Cannot download test data on CRAN.
   skip_if_offline(host = "raw.githubusercontent.com");

@@ -4,7 +4,7 @@ pkgfilecache Changes
 
 Version 0.3.0 -- Parallel Downloads
 ------------------------------------
-- NEW: Parallel downloads: the new 'num_connections' argument of 'ensure_files_available' (default 2) downloads several files at the same time using the 'curl' multi interface, which speeds up downloading many small files. Use num_connections=1 for strictly sequential downloads.
+- NEW: Parallel downloads: the new 'num_connections' argument of 'ensure_files_available' (default 2) downloads several files at the same time using the 'curl' multi interface, which speeds up downloading many small files. Use num_connections=1 for strictly sequential downloads. Controlling the number of default parallel downloads is also possible via `options` (use `pkgfilecache.num_connections`), allowing the user in an interactive session to control downloads in package code (unless the package author explicitely specified them).
 
 
 Version 0.2.0 -- Adjust default download dir, support tempdir, maintenance

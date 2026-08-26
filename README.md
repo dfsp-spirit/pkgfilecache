@@ -43,6 +43,8 @@ You can control the number of connections in two ways:
 * Per call, via the `num_connections` argument of `ensure_files_available()`. Use `num_connections=1` for strictly sequential downloads (e.g., when a server is slow or rate-limited), or a higher number to speed up downloading many files.
 * Globally, via the R option `options(pkgfilecache.num_connections = N)`. This changes the default for all calls that do not specify the `num_connections` argument themselves, for example the calls made by packages that use pkgfilecache to manage their optional data. Note that an explicit `num_connections` argument always takes precedence over the option.
 
+Downloads that fail (e.g., because a server closes or throttles a connection) are retried automatically up to `num_retries` times (default 2) using fresh connections, so temporary network hiccups do not cause files to be reported as missing. Set `num_retries = 0` to disable retrying.
+
 
 ## Where the files are stored
 

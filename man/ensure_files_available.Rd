@@ -12,7 +12,8 @@ ensure_files_available(
   md5sums = NULL,
   on_errors = "warn",
   download = TRUE,
-  num_connections = getOption("pkgfilecache.num_connections", 2)
+  num_connections = getOption("pkgfilecache.num_connections", 2),
+  num_retries = 2
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ ensure_files_available(
 \item{download, }{logical. Whether to try downloading missing files. Defaults to TRUE. Existing files (with correct MD5 if available) will never be downloaded.}
 
 \item{num_connections, }{integer. The number of parallel connections to use when downloading files. Defaults to 2. With more connections, several files are downloaded at the same time, which can speed up downloading many small files considerably. Use 1 for strictly sequential downloads. A high number of connections may overload the server or trigger rate limits. The default can be changed globally for all calls that do not specify this argument by setting the R option \code{pkgfilecache.num_connections}.}
+
+\item{num_retries, }{integer. How many times to retry downloading files that failed, in addition to the first attempt. Defaults to 2. Each attempt uses fresh connections, which makes downloads robust against transient connection failures (e.g., a server that closes or throttles connections). Set to 0 to disable retrying.}
 }
 \value{
 Named list. The list has entries: "available": vector of strings. The names of the files that are available in the local file cache. You can access them using get_filepath(). "missing": vector of strings. The names of the files that this function was unable to retrieve. "file_status": Logical array indicating whether the files are available. Order is identical to the one in argument 'relative_filenames'.

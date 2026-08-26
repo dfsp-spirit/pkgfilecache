@@ -240,6 +240,8 @@ are_files_available <- function(pkg_info, relative_filenames, md5sums = NULL) {
 #'
 #' @param num_connections, integer. The number of parallel connections to use when downloading files. Defaults to 2. With more connections, several files are downloaded at the same time, which can speed up downloading many small files considerably. Use 1 for strictly sequential downloads. A high number of connections may overload the server or trigger rate limits. The default can be changed globally for all calls that do not specify this argument by setting the R option \code{pkgfilecache.num_connections}.
 #'
+#' @param num_retries, integer. How many times to retry downloading files that failed, in addition to the first attempt. Defaults to 2. Each attempt uses fresh connections, which makes downloads robust against transient connection failures (e.g., a server that closes or throttles connections). Set to 0 to disable retrying.
+#'
 #' @return Named list. The list has entries: "available": vector of strings. The names of the files that are available in the local file cache. You can access them using get_filepath(). "missing": vector of strings. The names of the files that this function was unable to retrieve. "file_status": Logical array indicating whether the files are available. Order is identical to the one in argument 'relative_filenames'.
 #'
 #' @examples
@@ -254,7 +256,7 @@ are_files_available <- function(pkg_info, relative_filenames, md5sums = NULL) {
 #'    erase_file_cache(pkg_info); # clear full cache
 #'
 #' @export
-ensure_files_available <- function(pkg_info, relative_filenames, urls, files_are_binary = NULL, md5sums = NULL, on_errors="warn", download=TRUE, num_connections = getOption("pkgfilecache.num_connections", 2)) {
+ensure_files_available <- function(pkg_info, relative_filenames, urls, files_are_binary = NULL, md5sums = NULL, on_errors="warn", download=TRUE, num_connections = getOption("pkgfilecache.num_connections", 2), num_retries = 2) {
   if(length(relative_filenames) != length(urls)) {
     stop(sprintf("Data mismatch: received %d relative_filenames but %d urls. Lengths must be identical.", length(relative_filenames), length(urls)));
   }
@@ -273,6 +275,10 @@ ensure_files_available <- function(pkg_info, relative_filenames, urls, files_are
     stop(sprintf("Parameter 'num_connections' must be a single positive number, but was '%s'.\n", num_connections));
   }
 
+  if(! is.numeric(num_retries) || length(num_retries) != 1 || num_retries < 0) {
+    stop(sprintf("Parameter 'num_retries' must be a single non-negative number, but was '%s'.\n", num_retries));
+  }
+
   datadir = get_cache_dir(pkg_info);
 
   make_pgk_cache_subdir_for_all_relative_files(pkg_info, relative_filenames);
@@ -285,10 +291,25 @@ ensure_files_available <- function(pkg_info, relative_filenames, urls, files_are
   }
 
   if(download) {
-    download_files_with_md5_mismatch(local_files_absolute, local_files_md5_ok, urls, files_are_binary=files_are_binary, num_connections=num_connections);
+    # Download all missing/mismatched files, and retry any that fail up to
+    # 'num_retries' additional times. Each attempt uses fresh connections,
+    # which makes downloads robust against transient connection failures
+    # (e.g., a server that closes or throttles connections during downloads).
+    local_files_md5_ok_now = local_files_md5_ok;
+    for (retry_count in 0:num_retries) {
+      download_files_with_md5_mismatch(local_files_absolute, local_files_md5_ok_now, urls, files_are_binary=files_are_binary, num_connections=num_connections);
 
-    # Check again whether md5sums are OK now
-    are_local_files_md5_ok_afterwards = files_exist_md5(local_files_absolute, md5sums);
+      # Check again whether md5sums are OK now
+      local_files_md5_ok_now = files_exist_md5(local_files_absolute, md5sums);
+
+      if(all(local_files_md5_ok_now)) {
+        break;
+      }
+      if(retry_count < num_retries) {
+        cat(sprintf("Failed to download %d of %d file(s); retrying (attempt %d of %d).\n", sum(!local_files_md5_ok_now), length(local_files_absolute), retry_count + 1, num_retries));
+      }
+    }
+    are_local_files_md5_ok_afterwards = local_files_md5_ok_now;
 
     if(on_errors %in% c("warn", "stop")) {
       num_errors = 0L;
