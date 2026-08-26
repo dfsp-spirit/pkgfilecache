@@ -1,5 +1,5 @@
 # pkgfilecache
-GNU R package that allows package users to download and cache optional data files in a local directory.
+R package that allows package users to download and cache optional data files in a local directory.
 
 ## About
 
@@ -25,7 +25,7 @@ The intended way of using pkgfilecache is to **not** call the download function 
 
 ## How it works
 
-You specify a list of optional data files, and package users can download them with a single command from within GNU R. For each file, you provide:
+You specify a list of optional data files, and package users can download them with a single command from within R. For each file, you provide:
 
 * a full URL to the file, hosted on some public web server
 * the MD5 checksum of the file (optional, but highly recommended)
