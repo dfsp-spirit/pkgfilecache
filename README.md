@@ -41,6 +41,36 @@ You specify a list of optional data files, and package users can download them w
 Users can then access the file by the local filename. See the documentation for details.
 
 
+## Managing many files with a declarative manifest
+
+Specifying files as three parallel vectors (local filenames, URLs, MD5 sums) is fine for a handful of files, but it gets tedious when your package has many optional data files. In that case, you can describe the files in a single declarative *manifest*, one row per file, either as a data.frame or as a CSV file shipped with your package.
+
+A manifest has a `path` column (the file path relative to the package cache, using `/` as separator) and two optional columns: `url` (the download URL) and `md5` (the checksum). If the remote directory layout mirrors the local one, you can omit the `url` column and derive the URLs from a `base_url`:
+
+```r
+  # A small manifest as a data.frame: two files, URLs derived from base_url.
+  manifest = data.frame(
+    path = c("dir1/file1.txt", "dir2/file2.txt"),
+    md5 = c("35261471bcd198583c3805ee2a543b1f", "85ffec2e6efb476f1ee1e3e7fddd86de")
+  );
+  cfiles = pkgfilecache::ensure_files_available_from_manifest(pkg_info, manifest, base_url = "https://your.server/yourpackage/");
+```
+
+You can also ship the manifest as a CSV file in your package (e.g., in `inst/extdata`) and pass its path instead of a data.frame; comment lines starting with `#` are ignored. Use `read_manifest()` to inspect or validate a manifest.
+
+To avoid computing MD5 sums by hand, generate the manifest from a local directory of files:
+
+```r
+  # Put your optional data files into a directory (subdirectories are preserved), then:
+  pkgfilecache::write_manifest_from_dir(
+    dir = "~/yourpackage_data",
+    out = "inst/extdata/files.csv",
+    url_base = "https://your.server/yourpackage/"
+  );
+  # The MD5 checksums are computed for you. Add the CSV to your package.
+```
+
+
 ## Downloading files in parallel
 
 By default, `ensure_files_available()` downloads the files that are missing (or that have an incorrect MD5 sum) in parallel: several files are downloaded at the same time using the `curl` multi interface, which can speed up downloading many small files considerably. The number of simultaneous connections defaults to 2, which is a safe choice for most servers and for CRAN checks.

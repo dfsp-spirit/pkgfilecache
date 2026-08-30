@@ -2,6 +2,15 @@ pkgfilecache Changes
 =====================
 
 
+Version 0.4.0 -- Declarative file manifests
+---------------------------------------------
+- NEW: Describe the optional data files of your package in a single declarative manifest (one row per file) instead of three parallel vectors (relative filenames, urls, md5 sums). A manifest is either a CSV file shipped with your package or a data.frame, with columns 'path' (required), and 'url' and 'md5' (both optional). This reduces the friction of adding many files to a package.
+- NEW: 'ensure_files_available_from_manifest' is a new entry point like 'ensure_files_available', but it takes a manifest instead of three parallel vectors. The download URL for a file can be derived automatically from a base URL (argument 'base_url') and the manifest path, which is convenient when the remote directory layout mirrors the layout inside the package cache.
+- NEW: 'read_manifest' reads a manifest from a CSV file (comment lines starting with '#' are ignored) or accepts a data.frame, validates it and derives missing URLs.
+- NEW: 'write_manifest_from_dir' generates a manifest (CSV file) from a local directory, computing the MD5 checksum of every file automatically. Put your files into a directory, run this function once, and add the resulting CSV to your package.
+- DEV: Regenerate documentation with roxygen2 8.0.0 (updated 'Config/roxygen2/version' in DESCRIPTION).
+
+
 Version 0.3.0 -- Parallel Downloads
 ------------------------------------
 - NEW: Parallel downloads: the new 'num_connections' argument of 'ensure_files_available' (default 2) downloads several files at the same time using the 'curl' multi interface, which speeds up downloading many small files. Use num_connections=1 for strictly sequential downloads. Controlling the number of default parallel downloads is also possible via `options` (use `pkgfilecache.num_connections`), allowing the user in an interactive session to control downloads in package code (unless the package author explicitely specified them).
