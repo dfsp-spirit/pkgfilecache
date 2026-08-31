@@ -130,9 +130,10 @@ test_that("ensure_files_available_from_manifest works offline (download = FALSE)
                         md5 = c(md5_file1, "00000000000000000000000000000000"),
                         stringsAsFactors = FALSE);
 
-  res = ensure_files_available_from_manifest(pkg_info, manifest,
-                                             base_url = "https://example.com/",
-                                             download = FALSE);
+  # 'other/missing.txt' is not in the cache, so a warning is expected.
+  res = expect_warning(ensure_files_available_from_manifest(pkg_info, manifest,
+                                                            base_url = "https://example.com/",
+                                                            download = FALSE));
   expect_equal(res$file_status, c(TRUE, FALSE));
   # The returned paths must be the '/' separated strings from the manifest.
   expect_equal(res$available, "sub/dir/file1.txt");
@@ -148,7 +149,8 @@ test_that("ensure_files_available_from_manifest accepts a CSV manifest (offline)
   manifest_file = file.path(td, "m.csv");
   writeLines("path,url,md5\njust_an_offline_check.txt,https://example.com/x.txt,\n", manifest_file);
 
-  res = ensure_files_available_from_manifest(pkg_info, manifest_file, download = FALSE);
+  # The file is not in the cache, so a warning is expected.
+  res = expect_warning(ensure_files_available_from_manifest(pkg_info, manifest_file, download = FALSE));
   expect_equal(res$missing, "just_an_offline_check.txt");
 })
 

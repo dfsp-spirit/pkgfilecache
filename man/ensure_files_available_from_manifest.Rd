@@ -44,8 +44,9 @@ Like \code{\link{ensure_files_available}}, but the files are described in a sing
    manifest = data.frame(path = c("sub/file1.txt", "file2.txt"),
                          stringsAsFactors = FALSE)
    # Only check availability, do not download anything (download = FALSE).
-   res = ensure_files_available_from_manifest(pkg_info, manifest,
-                                              base_url = "https://example.com/data/",
-                                              download = FALSE)
+   # The files are missing, so a warning is expected (see 'on_errors').
+   res = suppressWarnings(ensure_files_available_from_manifest(pkg_info, manifest,
+                                                               base_url = "https://example.com/data/",
+                                                               download = FALSE))
 
 }
