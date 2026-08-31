@@ -63,9 +63,12 @@ validate_manifest <- function(manifest) {
   }
 
   # Normalize path strings: use '/' as separator, drop leading separators and
-  # repeated separators. This keeps paths portable across platforms.
+  # repeated separators. This keeps paths portable across platforms. Note that
+  # the backslash replacement must use a regular expression (a fixed="TRUE"
+  # match with '\\\\' would only find double backslashes and silently do
+  # nothing on Windows, where paths use single backslashes).
   manifest$path = as.character(manifest$path);
-  manifest$path = gsub("\\\\", "/", manifest$path, fixed = TRUE);
+  manifest$path = gsub("\\\\", "/", manifest$path);
   manifest$path = sub("^/+", "", manifest$path);
   manifest$path = gsub("/+", "/", manifest$path);
 
@@ -218,8 +221,34 @@ write_manifest_from_dir <- function(dir, out, url_base = NULL) {
   }
 
   dir_norm = normalizePath(dir, mustWork = TRUE);
-  rel_paths = sub(paste0(dir_norm, .Platform$file.sep), "", normalizePath(files_abs, mustWork = TRUE), fixed = TRUE);
-  rel_paths = gsub("\\\\", "/", rel_paths, fixed = TRUE);
+  # Normalize both sides to forward slashes and strip any trailing separators
+  # from the directory prefix before removing it from the file paths. This
+  # makes the prefix stripping independent of the platform's file separator
+  # and of whether normalizePath() appends a trailing separator (which it can
+  # do on Windows), so the 'path' entries stay relative and portable.
+  dir_norm = gsub("\\\\", "/", dir_norm);
+  dir_norm = sub("/+$", "", dir_norm);
+
+  files_abs = normalizePath(files_abs, mustWork = TRUE);
+  files_abs = gsub("\\\\", "/", files_abs);
+
+  dir_prefix = paste0(dir_norm, "/");
+  nprefix = nchar(dir_prefix);
+  prefix_matches = startsWith(files_abs, dir_prefix);
+  rel_paths = files_abs;   # fallback: keep the path as-is if the prefix is not found
+  rel_paths[prefix_matches] = substring(files_abs[prefix_matches], nprefix + 1L);
+
+  # Windows file systems are case-insensitive, and normalizePath() may return
+  # differently-cased paths for the directory and the files (e.g. for the
+  # drive letter). Retry with a case-insensitive comparison for any path the
+  # exact match did not strip.
+  if(!all(prefix_matches)) {
+    ci_matches = startsWith(tolower(files_abs), tolower(dir_prefix));
+    rel_paths[ci_matches] = substring(files_abs[ci_matches], nprefix + 1L);
+  }
+
+  rel_paths = sub("^/+$", "", rel_paths);
+  rel_paths = sub("^/+", "", rel_paths);
 
   md5sums = as.vector(tools::md5sum(files_abs));
 

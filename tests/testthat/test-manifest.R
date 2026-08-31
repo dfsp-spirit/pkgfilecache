@@ -34,6 +34,26 @@ test_that("write_manifest_from_dir generates a valid manifest that can be read b
 })
 
 
+test_that("write_manifest_from_dir produces relative, portable paths.", {
+  # Regression test: on Windows, the directory prefix was not stripped from
+  # the file paths (normalizePath() returns a trailing separator / different
+  # separator style there), which left absolute paths (with a drive letter) in
+  # the manifest. Paths must always be relative and use '/', on every platform.
+  td = withr::local_tempdir();
+  dir.create(file.path(td, "sub"));
+  writeLines("hello", file.path(td, "file1.txt"));
+  writeLines("world", file.path(td, "sub", "file2.txt"));
+  out = file.path(td, "manifest.csv");
+
+  m = write_manifest_from_dir(td, out);
+
+  # No absolute paths, no drive letters, no leading separators.
+  expect_false(any(grepl("^[A-Za-z]:", m$path)));
+  expect_false(any(grepl("^[/\\\\]", m$path)));   # no leading '/' or '\'
+  expect_true(all(c("file1.txt", "sub/file2.txt") %in% m$path));
+})
+
+
 test_that("write_manifest_from_dir leaves the url column empty without url_base.", {
   td = withr::local_tempdir();
   writeLines("hello", file.path(td, "file1.txt"));
