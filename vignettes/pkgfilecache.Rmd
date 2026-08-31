@@ -78,6 +78,49 @@ local_relative_filenames = list(c("dir1", "file1.txt"), c("dir2", "file2.txt"));
 That example will download the files to `dir1/file1.txt`and `dir2/file2.txt`. The directories will be created automatically if they do not exist.
 
 
+### Declarative file manifests
+
+Maintaining the three parallel vectors (`local_filenames`, `urls`, `md5sums`) is fine for a handful of files, but it gets tedious once your package has many optional data files. For this case, pkgfilecache lets you describe all files in a single declarative *manifest*, one row per file. A manifest is either a data.frame or a CSV file, with the following columns:
+
+* `path` (required): the file path relative to the package cache, using `/` as separator. Subdirectories are created automatically.
+* `url` (optional): the download URL. If empty, it is derived as `paste0(base_url, path)` from the `base_url` argument, which is convenient when the remote directory layout mirrors the layout inside the package cache.
+* `md5` (optional): the MD5 checksum of the file. If empty, only the existence of the file is checked, not its integrity.
+
+Use `ensure_files_available_from_manifest()` exactly like `ensure_files_available()`, but pass a manifest instead of three parallel vectors:
+
+```{r, eval = FALSE}
+manifest = data.frame(
+  path = c("dir1/file1.txt", "dir2/file2.txt"),
+  md5 = c("35261471bcd198583c3805ee2a543b1f", "85ffec2e6efb476f1ee1e3e7fddd86de")
+);
+res = ensure_files_available_from_manifest(pkg_info, manifest, base_url = "https://your.server/yourpackage/");
+```
+
+A manifest can also be a CSV file, which is convenient to ship in your package and to edit without touching R code. Comment lines starting with `#` are ignored:
+
+```{r, eval = FALSE}
+manifest_path = system.file("extdata", "files.csv", package = "yourpackage");
+res = ensure_files_available_from_manifest(pkg_info, manifest_path, base_url = "https://your.server/yourpackage/");
+```
+
+You can inspect or validate a manifest at any time with `read_manifest()`:
+
+```{r, eval = FALSE}
+manifest = read_manifest(manifest_path);   # validates the columns and the MD5 checksums
+```
+
+#### Generating a manifest from a local directory
+
+Computing MD5 sums by hand is usually the most tedious part of adding files. `write_manifest_from_dir()` does this for you: it walks a local directory, computes the MD5 checksum of every file, and writes a ready-to-use manifest as a CSV file. Put your files into a directory (subdirectories are preserved), run it once, and add the resulting CSV to your package:
+
+```{r, eval = FALSE}
+# Put all your optional data files into a directory, then:
+write_manifest_from_dir(dir = "~/yourpackage_data", out = "inst/extdata/files.csv",
+                        url_base = "https://your.server/yourpackage/");
+# If url_base is given, the 'url' column is filled with url_base + path for every file.
+# If it is left NULL, the 'url' column stays empty and you pass base_url at download time.
+```
+
 
 ## Accessing a file from the local package cache
 
@@ -204,6 +247,31 @@ delete_all_optional_data <- function() {
 }
 ```
 
+If your package has many optional data files, you can implement `download_optional_data()` much more compactly using a declarative manifest instead of the three parallel vectors (see the section 'Declarative file manifests' above). The example below uses a data.frame as the manifest; you can just as well use a CSV file shipped with your package and pass its path instead:
+
+```{r, eval = FALSE}
+#' @title Download optional data for this package if required.
+#'
+#' @description Ensure that the optional data is available locally in the package cache. Will try to download the data only if it is not available.
+#'
+#' @return Named list. The list has entries: "available": vector of strings. The names of the files that are available in the local file cache. You can access them using get_optional_data_file(). "missing": vector of strings. The names of the files that this function was unable to retrieve.
+#'
+#' @export
+download_optional_data <- function() {
+  pkg_info = pkgfilecache::get_pkg_info("yourpackage");   # to identify the package using the cache
+
+  manifest = data.frame(
+    path = c("dir1/file1.txt", "dir2/file2.txt"),
+    md5 = c("35261471bcd198583c3805ee2a543b1f", "85ffec2e6efb476f1ee1e3e7fddd86de")
+  );
+
+  cfiles = pkgfilecache::ensure_files_available_from_manifest(
+    pkg_info, manifest, base_url = "https://your.server/yourpackage/"
+  );
+  cfiles$file_status = NULL;
+  return(cfiles);
+}
+```
 
 
 ## Limitations and Suggestions
