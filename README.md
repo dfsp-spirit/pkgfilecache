@@ -86,13 +86,13 @@ The arguments mirror those of `write_manifest_from_dir()`:
 * `--url-base <url>`: optional base URL used to derive the download URLs
 * `--help`: print usage information and exit
 
-If you prefer a standalone script file, the package also ships a thin wrapper script called `make_manifest.R` (in `inst/exec`) that does exactly the same thing. Get its path with `pkgfilecache::manifest_script()` and run it with `Rscript`:
+If you prefer a standalone script file, the package also ships a thin wrapper script called `make_manifest.R` (in the `exec` directory of the installed package) that does exactly the same thing. Get its path with `pkgfilecache::manifest_script()` and run it with `Rscript`:
 
 ```bash
   Rscript "$(Rscript -e 'cat(pkgfilecache::manifest_script())')" --dir ~/yourpackage_data --out files.csv --url-base https://your.server/yourpackage/
 ```
 
-On Unix-like systems the script is executable, so you can copy it to a directory on your `PATH` (e.g. `~/bin`) and run it like a normal command. If you have not installed the package yet, you can also download the script directly from the GitHub releases page of this package (for a release tagged `<tag>`, use `https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/<tag>/inst/exec/make_manifest.R`). Note that the package must be installed for the script to work, as the script itself only contains a thin wrapper around the package functions.
+On Unix-like systems the script is executable, so you can copy it to a directory on your `PATH` (e.g. `~/bin`) and run it like a normal command. If you have not installed the package yet, you can also download the script directly from the GitHub releases page of this package (for a release tagged `<tag>`, use `https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/<tag>/exec/make_manifest.R`). Note that the package must be installed for the script to work, as the script itself only contains a thin wrapper around the package functions.
 
 
 ## Downloading files in parallel

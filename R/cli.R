@@ -12,7 +12,8 @@
 #
 #        Rscript -e 'pkgfilecache::manifest_cli()' --args --dir ~/mydata --out files.csv --url-base https://example.com/data/
 #
-#   2) As the standalone script that ships with the package (inst/exec/make_manifest.R),
+#   2) As the standalone script that ships with the package (in the top-level
+#      exec/ directory of the package, installed to the package's exec/ subdirectory),
 #      which is a thin wrapper that just calls pkgfilecache::manifest_cli(). Get
 #      its path with manifest_script().
 
@@ -128,7 +129,7 @@ manifest_cli_usage <- function() {
 
 #' @title Get the path of the standalone manifest generation script.
 #'
-#' @description Return the full path to the \code{make_manifest.R} script that ships with the package (installed into \code{inst/exec}). This script is a thin wrapper around \code{\link{manifest_cli}} and can be run with \code{Rscript} to generate a manifest from the command line. On Unix-like systems you can also copy it to a directory on your \code{PATH} and make it executable with \code{chmod +x}, then run it like a normal command.
+#' @description Return the full path to the \code{make_manifest.R} script that ships with the package (installed into the package's \code{exec} subdirectory). This script is a thin wrapper around \code{\link{manifest_cli}} and can be run with \code{Rscript} to generate a manifest from the command line. On Unix-like systems you can also copy it to a directory on your \code{PATH} and make it executable with \code{chmod +x}, then run it like a normal command.
 #'
 #' @return character string. The full path to the script, or \code{""} if the script cannot be found (e.g., because the package is not installed correctly).
 #'

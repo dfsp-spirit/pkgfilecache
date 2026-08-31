@@ -10,5 +10,5 @@ manifest_script()
 character string. The full path to the script, or \code{""} if the script cannot be found (e.g., because the package is not installed correctly).
 }
 \description{
-Return the full path to the \code{make_manifest.R} script that ships with the package (installed into \code{inst/exec}). This script is a thin wrapper around \code{\link{manifest_cli}} and can be run with \code{Rscript} to generate a manifest from the command line. On Unix-like systems you can also copy it to a directory on your \code{PATH} and make it executable with \code{chmod +x}, then run it like a normal command.
+Return the full path to the \code{make_manifest.R} script that ships with the package (installed into the package's \code{exec} subdirectory). This script is a thin wrapper around \code{\link{manifest_cli}} and can be run with \code{Rscript} to generate a manifest from the command line. On Unix-like systems you can also copy it to a directory on your \code{PATH} and make it executable with \code{chmod +x}, then run it like a normal command.
 }
