@@ -620,14 +620,14 @@ download_files_with_md5_mismatch <- function(local_files_absolute, local_files_m
         url = urls[file_idx];
         destfile = local_files_absolute[file_idx];
         cat(sprintf("Download file to '%s' from '%s'\n", destfile, url));
-        # Collect the error message per destination file. The callback refers to
-        # 'destfile', which is a per-call argument of
-        # add_file_download_to_curl_pool, so each parallel download records its
-        # own error (the loop variable itself must not be used inside the
-        # callback: R closures capture the variable, not its per-iteration
-        # value).
-        add_file_download_to_curl_pool(url, destfile, pool, error_collector=function(msg) {
-          errors_by_file[[destfile]] = msg;
+        # Collect the error message per destination file. The collector receives
+        # the destination file and the error message as explicit arguments from
+        # add_file_download_to_curl_pool, which has the correct per-call
+        # 'destfile' (its own formal argument). It must NOT close over the loop
+        # variable 'destfile' here: R closures capture the variable, not its
+        # per-iteration value, so all callbacks would see the last file's path.
+        add_file_download_to_curl_pool(url, destfile, pool, error_collector=function(dest, msg) {
+          errors_by_file[[dest]] = msg;
         });
       }
       curl::multi_run(pool = pool);
@@ -654,7 +654,7 @@ download_files_with_md5_mismatch <- function(local_files_absolute, local_files_m
 #'
 #' @param pool, curl pool. The pool to add the download to, see \code{curl::new_pool}.
 #'
-#' @param error_collector, function or NULL. An optional callback that is called with a single string argument (the error message) if the download failed, i.e., if the HTTP response had a status code >= 300 or if a connection-level error occurred. Defaults to NULL, in which case failures are only handled by removing the destination file.
+#' @param error_collector, function or NULL. An optional callback that is called with two string arguments if the download failed, i.e., if the HTTP response had a status code >= 300 or if a connection-level error occurred: the destination file (first argument) and the error message (second argument). Passing the destination file explicitly lets callers attribute each error to the right file, without closing over loop variables. Defaults to NULL, in which case failures are only handled by removing the destination file.
 #'
 #' @return NULL, invisibly.
 #'
@@ -671,7 +671,7 @@ add_file_download_to_curl_pool <- function(url, destfile, pool, error_collector 
         tryCatch(file.remove(destfile), error = function(e) {});
       }
       if(!is.null(error_collector)) {
-        error_collector(sprintf("HTTP status code %d (the server returned an error response).", res$status_code));
+        error_collector(destfile, sprintf("HTTP status code %d (the server returned an error response).", res$status_code));
       }
     }
   }, fail = function(err, ...) {
@@ -682,7 +682,7 @@ add_file_download_to_curl_pool <- function(url, destfile, pool, error_collector 
     }
     if(!is.null(error_collector)) {
       err_msg = if(inherits(err, "condition")) conditionMessage(err) else paste(as.character(err), collapse = " ");
-      error_collector(err_msg);
+      error_collector(destfile, err_msg);
     }
   });
   return(invisible(NULL));

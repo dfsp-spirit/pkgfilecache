@@ -13,7 +13,7 @@ add_file_download_to_curl_pool(url, destfile, pool, error_collector = NULL)
 
 \item{pool, }{curl pool. The pool to add the download to, see \code{curl::new_pool}.}
 
-\item{error_collector, }{function or NULL. An optional callback that is called with a single string argument (the error message) if the download failed, i.e., if the HTTP response had a status code >= 300 or if a connection-level error occurred. Defaults to NULL, in which case failures are only handled by removing the destination file.}
+\item{error_collector, }{function or NULL. An optional callback that is called with two string arguments if the download failed, i.e., if the HTTP response had a status code >= 300 or if a connection-level error occurred: the destination file (first argument) and the error message (second argument). Passing the destination file explicitly lets callers attribute each error to the right file, without closing over loop variables. Defaults to NULL, in which case failures are only handled by removing the destination file.}
 }
 \value{
 NULL, invisibly.
