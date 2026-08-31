@@ -38,10 +38,11 @@
 #' @examples
 #'   \dontrun{
 #'   # One-liner from the shell (no script file needed):
-#'   Rscript -e 'pkgfilecache::manifest_cli()' --args --dir ~/mydata --out files.csv --url-base https://example.com/data/
+#'   Rscript -e 'pkgfilecache::manifest_cli()' --args --dir ~/mydata --out files.csv
 #'
-#'   # Same thing using the standalone script shipped with the package:
-#'   Rscript "$(Rscript -e 'cat(pkgfilecache::manifest_script())')" --dir ~/mydata --out files.csv --url-base https://example.com/data/
+#'   # Same thing using the standalone script shipped with the package
+#'   # (--url-base is optional and derives the download URLs):
+#'   Rscript "$(Rscript -e 'cat(pkgfilecache::manifest_script())')" --dir ~/mydata --out files.csv
 #'   }
 #'
 #' @export

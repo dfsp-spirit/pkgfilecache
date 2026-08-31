@@ -1,4 +1,10 @@
 * text=auto
-inst/* binary
+# Everything under inst/ and exec/ is shipped as-is and must be byte-identical
+# on all platforms (e.g. the MD5 sums of the shipped test data are fixed, and
+# the exec/ wrapper script keeps its LF shebang), so mark them binary to
+# prevent git from converting line endings. Note: inst/* only matches one
+# directory level and did NOT cover files in subdirs like inst/extdata/.
+inst/** binary
+exec/** binary
 R/* text=lf
 tests/* text=lf
