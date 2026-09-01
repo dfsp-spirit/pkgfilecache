@@ -25,11 +25,11 @@ ensure_files_available(
 
 \item{files_are_binary, }{logical vector. For each file, whether it is binary. Only required on Windows, when files need to be downloaded. See `curl::curl_download` docs for details.}
 
-\item{md5sums, }{vector of strings or NULL. A list of MD5 checksums, one for each file in param 'relative_filenames', if not NULL. If given, the files will only be reported as existing if the MD5 sums match.}
+\item{md5sums, }{vector of strings or NULL. A list of MD5 checksums, one for each file in param 'relative_filenames', if not NULL. If given, the files will only be reported as existing if the MD5 sums match. A file that is present in the cache but whose MD5 sum does not match the expected sum is considered invalid and is deleted from the cache, so that it is never mistaken for a valid file.}
 
-\item{on_errors, }{string. What to do if getting the files failed. One of c("warn", "stop", "ignore"). At the end, files are checked using `files_available`(including MD5 if given). Depending on the check results, the behaviours triggered are: "warn": Print a warning for each file that failed the check. "stop": Stop the script, i.e., the whole application. "ignore": Do nothing. You can still react using the return value.}
+\item{on_errors, }{string. What to do if getting the files failed. One of c("warn", "stop", "ignore"). At the end, files are checked using `files_available`(including MD5 if given). Depending on the check results, the behaviours triggered are: "warn": Print a warning for each file that failed the check. "stop": Stop the script, i.e., the whole application. "ignore": Do nothing. You can still react using the return value. This applies whether or not downloading was attempted, so missing files are never silently ignored, e.g., when 'download' is FALSE.}
 
-\item{download, }{logical. Whether to try downloading missing files. Defaults to TRUE. Existing files (with correct MD5 if available) will never be downloaded.}
+\item{download, }{logical. Whether to try downloading missing files. Defaults to TRUE. Existing files (with correct MD5 if available) will never be downloaded. When set to FALSE, no files are downloaded, but missing files are still reported according to 'on_errors'.}
 
 \item{num_connections, }{integer. The number of parallel connections to use when downloading files. Defaults to 2. With more connections, several files are downloaded at the same time, which can speed up downloading many small files considerably. Use 1 for strictly sequential downloads. A high number of connections may overload the server or trigger rate limits. The default can be changed globally for all calls that do not specify this argument by setting the R option \code{pkgfilecache.num_connections}.}
 

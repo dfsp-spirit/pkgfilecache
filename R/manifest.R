@@ -159,9 +159,10 @@ derive_manifest_urls <- function(manifest, base_url = NULL) {
 #'    manifest = data.frame(path = c("sub/file1.txt", "file2.txt"),
 #'                          stringsAsFactors = FALSE)
 #'    # Only check availability, do not download anything (download = FALSE).
-#'    res = ensure_files_available_from_manifest(pkg_info, manifest,
-#'                                               base_url = "https://example.com/data/",
-#'                                               download = FALSE)
+#'    # The files are missing, so a warning is expected (see 'on_errors').
+#'    res = suppressWarnings(ensure_files_available_from_manifest(pkg_info, manifest,
+#'          base_url = "https://example.com/data/",
+#'          download = FALSE))
 #'
 #' @export
 ensure_files_available_from_manifest <- function(pkg_info, manifest, base_url = NULL, files_are_binary = NULL, on_errors = "warn", download = TRUE, num_connections = getOption("pkgfilecache.num_connections", 2), num_retries = 2) {

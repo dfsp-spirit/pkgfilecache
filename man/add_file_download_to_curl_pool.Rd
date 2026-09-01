@@ -4,7 +4,7 @@
 \alias{add_file_download_to_curl_pool}
 \title{Add a single file download to a curl multi pool.}
 \usage{
-add_file_download_to_curl_pool(url, destfile, pool)
+add_file_download_to_curl_pool(url, destfile, pool, error_collector = NULL)
 }
 \arguments{
 \item{url, }{string. The URL to download.}
@@ -12,11 +12,13 @@ add_file_download_to_curl_pool(url, destfile, pool)
 \item{destfile, }{string. The absolute path of the local file to write to.}
 
 \item{pool, }{curl pool. The pool to add the download to, see \code{curl::new_pool}.}
+
+\item{error_collector, }{function or NULL. An optional callback that is called with two string arguments if the download failed, i.e., if the HTTP response had a status code >= 300 or if a connection-level error occurred: the destination file (first argument) and the error message (second argument). Passing the destination file explicitly lets callers attribute each error to the right file, without closing over loop variables. Defaults to NULL, in which case failures are only handled by removing the destination file.}
 }
 \value{
 NULL, invisibly.
 }
 \description{
-Add a single file download to a curl multi pool for parallel downloading. The file is streamed to disk as soon as data arrives, using curl's internal file writer (which opens the file lazily and closes it when the transfer completes). On any failure (connection error or HTTP status >= 300), the destination file is removed, so that a partially downloaded file is never mistaken for a successfully downloaded one. This function is only used internally by \code{download_files_with_md5_mismatch}.
+Add a single file download to a curl multi pool for parallel downloading. The file is streamed to disk as soon as data arrives, using curl's internal file writer (which opens the file lazily and closes it when the transfer completes). On any failure (connection error or HTTP status >= 300), the destination file is removed, so that a partially downloaded file is never mistaken for a successfully downloaded one. The failure is also reported to the \code{error_collector} callback, if given, so that callers can surface a meaningful cause (the HTTP status code or the connection error message) to the user. This function is only used internally by \code{download_files_with_md5_mismatch}.
 }
 \keyword{internal}

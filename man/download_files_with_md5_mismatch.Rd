@@ -23,6 +23,9 @@ download_files_with_md5_mismatch(
 
 \item{num_connections, }{integer. The number of parallel connections to use when downloading files. Defaults to 2, or to the value of the R option \code{pkgfilecache.num_connections} if it is set. Use 1 for strictly sequential downloads.}
 }
+\value{
+Named character vector with one entry per file in \code{local_files_absolute} (the names are the absolute file paths). The entry is \code{NA} for files that were not downloaded in this call and for files that downloaded successfully; for files that were downloaded but failed it contains the error message of the download attempt. This message can distinguish remote problems (e.g., an HTTP status code like 404, or a connection failure) from local problems (e.g., the local file could not be written). The authoritative success check is done separately via \code{files_exist_md5} afterwards.
+}
 \description{
 Download files marked as mismatched to package cache. You should check afterwards whether this was successful, e.g., via `files_exist_md5`.
 }

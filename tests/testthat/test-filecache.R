@@ -196,6 +196,40 @@ test_that("Parallel downloads (num_connections=2) work and clean up partial file
 
 
 
+test_that("Parallel downloads report the download cause for EACH failed file.", {
+  # Offline regression test: the malformed URLs (containing a space) are
+  # rejected by curl before any network access. This guards against a bug where,
+  # in parallel mode, the error of a failed download was attributed to the wrong
+  # file (always the last one in the list), because the error collector closed
+  # over the loop variable. Each failing file must get its own warning that
+  # includes the actual cause.
+  pkg_info = get_pkg_info("pkgfilecache");
+  local_relative_filenames = c("par_err_a.bin", "par_err_b.bin");
+  urls = c("https://example.com/malformed url a.bin", "https://example.com/malformed url b.bin");
+
+  erase_file_cache(pkg_info);
+
+  err_warnings = character(0);
+  res = withCallingHandlers(
+    ensure_files_available(pkg_info, local_relative_filenames, urls, num_connections=2, num_retries=0),
+    warning = function(w) {
+      err_warnings <<- c(err_warnings, conditionMessage(w));
+      invokeRestart("muffleWarning");
+    }
+  );
+  expect_equal(res$file_status, c(FALSE, FALSE));
+  expect_equal(length(res$missing), 2L);
+  # One warning per failing file, each naming its own file and the cause.
+  expect_equal(length(err_warnings), 2L);
+  expect_true(any(grepl("par_err_a.bin", err_warnings, fixed=TRUE)));
+  expect_true(any(grepl("par_err_b.bin", err_warnings, fixed=TRUE)));
+  expect_true(all(grepl("Last download error", err_warnings, fixed=TRUE)));
+
+  erase_file_cache(pkg_info); # clear full cache
+})
+
+
+
 test_that("The pkgfilecache.num_connections option sets the default number of connections.", {
   # Offline: an invalid option value must be caught by the parameter validation,
   # which proves that the option is read when no explicit num_connections is given.

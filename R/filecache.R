@@ -232,11 +232,11 @@ are_files_available <- function(pkg_info, relative_filenames, md5sums = NULL) {
 #'
 #' @param files_are_binary, logical vector. For each file, whether it is binary. Only required on Windows, when files need to be downloaded. See `curl::curl_download` docs for details.
 #'
-#' @param md5sums, vector of strings or NULL. A list of MD5 checksums, one for each file in param 'relative_filenames', if not NULL. If given, the files will only be reported as existing if the MD5 sums match.
+#' @param md5sums, vector of strings or NULL. A list of MD5 checksums, one for each file in param 'relative_filenames', if not NULL. If given, the files will only be reported as existing if the MD5 sums match. A file that is present in the cache but whose MD5 sum does not match the expected sum is considered invalid and is deleted from the cache, so that it is never mistaken for a valid file.
 #'
-#' @param on_errors, string. What to do if getting the files failed. One of c("warn", "stop", "ignore"). At the end, files are checked using `files_available`(including MD5 if given). Depending on the check results, the behaviours triggered are: "warn": Print a warning for each file that failed the check. "stop": Stop the script, i.e., the whole application. "ignore": Do nothing. You can still react using the return value.
+#' @param on_errors, string. What to do if getting the files failed. One of c("warn", "stop", "ignore"). At the end, files are checked using `files_available`(including MD5 if given). Depending on the check results, the behaviours triggered are: "warn": Print a warning for each file that failed the check. "stop": Stop the script, i.e., the whole application. "ignore": Do nothing. You can still react using the return value. This applies whether or not downloading was attempted, so missing files are never silently ignored, e.g., when 'download' is FALSE.
 #'
-#' @param download, logical. Whether to try downloading missing files. Defaults to TRUE. Existing files (with correct MD5 if available) will never be downloaded.
+#' @param download, logical. Whether to try downloading missing files. Defaults to TRUE. Existing files (with correct MD5 if available) will never be downloaded. When set to FALSE, no files are downloaded, but missing files are still reported according to 'on_errors'.
 #'
 #' @param num_connections, integer. The number of parallel connections to use when downloading files. Defaults to 2. With more connections, several files are downloaded at the same time, which can speed up downloading many small files considerably. Use 1 for strictly sequential downloads. A high number of connections may overload the server or trigger rate limits. The default can be changed globally for all calls that do not specify this argument by setting the R option \code{pkgfilecache.num_connections}.
 #'
@@ -290,6 +290,9 @@ ensure_files_available <- function(pkg_info, relative_filenames, urls, files_are
     dir.create(datadir, showWarnings = TRUE, recursive = TRUE);
   }
 
+  last_download_errors = rep(NA_character_, length(local_files_absolute));
+  names(last_download_errors) = local_files_absolute;
+
   if(download) {
     # Download all missing/mismatched files, and retry any that fail up to
     # 'num_retries' additional times. Each attempt uses fresh connections,
@@ -297,7 +300,11 @@ ensure_files_available <- function(pkg_info, relative_filenames, urls, files_are
     # (e.g., a server that closes or throttles connections during downloads).
     local_files_md5_ok_now = local_files_md5_ok;
     for (retry_count in 0:num_retries) {
-      download_files_with_md5_mismatch(local_files_absolute, local_files_md5_ok_now, urls, files_are_binary=files_are_binary, num_connections=num_connections);
+      attempt_errors = download_files_with_md5_mismatch(local_files_absolute, local_files_md5_ok_now, urls, files_are_binary=files_are_binary, num_connections=num_connections);
+      # Keep the error message of the last attempt for each file, for use in the
+      # final warnings below. Messages of earlier attempts are overwritten: only
+      # the last attempt matters for the final report.
+      last_download_errors[names(attempt_errors)] = attempt_errors;
 
       # Check again whether md5sums are OK now
       local_files_md5_ok_now = files_exist_md5(local_files_absolute, md5sums);
@@ -310,26 +317,55 @@ ensure_files_available <- function(pkg_info, relative_filenames, urls, files_are
       }
     }
     are_local_files_md5_ok_afterwards = local_files_md5_ok_now;
+  } else {
+    are_local_files_md5_ok_afterwards = files_exist_md5(local_files_absolute, md5sums);
+  }
 
-    if(on_errors %in% c("warn", "stop")) {
-      num_errors = 0L;
-      for (file_idx in 1:length(local_files_absolute)) {
-        lfile = local_files_absolute[file_idx];
-        if(!(are_local_files_md5_ok_afterwards[file_idx])) {
-          num_errors = num_errors + 1L;
+  # Handle missing files according to 'on_errors'. This runs both when
+  # downloading was enabled (a download may have failed, or a downloaded file
+  # may have failed its MD5 check) and when it was disabled (files are simply
+  # missing from the cache), so that missing files are never silently ignored.
+  if(on_errors %in% c("warn", "stop")) {
+    num_errors = 0L;
+    for (file_idx in 1:length(local_files_absolute)) {
+      lfile = local_files_absolute[file_idx];
+      if(!(are_local_files_md5_ok_afterwards[file_idx])) {
+        num_errors = num_errors + 1L;
+        relative_filename_flattened = flatten_filepath(relative_filenames[file_idx]);
+        error_details = last_download_errors[lfile];
+        if(!is.na(error_details)) {
+          # The download attempt itself failed (HTTP status, connection error,
+          # or a local write problem): report the cause.
           if(is.null(md5sums)) {
-            warning(sprintf("Failed to get file '%s' to path '%s'.\n", relative_filenames[file_idx], lfile));
+            warning(sprintf("Failed to get file '%s' to path '%s'. Last download error: %s\n", relative_filename_flattened, lfile, error_details));
           } else {
-            warning(sprintf("Failed to get file '%s' with md5sum '%s' to path '%s'.\n", relative_filenames[file_idx], md5sums[file_idx], lfile));
+            warning(sprintf("Failed to get file '%s' with md5sum '%s' to path '%s'. Last download error: %s\n", relative_filename_flattened, md5sums[file_idx], lfile, error_details));
+          }
+        } else if(!is.null(md5sums) && file.exists(lfile)) {
+          # The file exists, but its MD5 checksum does not match the expected
+          # checksum. Since the user requested an integrity check by providing
+          # MD5 sums, a mismatching file must not be left in the cache where it
+          # could later be mistaken for a valid file (e.g., by get_filepath,
+          # which checks existence only): delete it and say so.
+          actual_md5 = unname(tools::md5sum(lfile));
+          tryCatch(file.remove(lfile), error = function(e) {});
+          warning(sprintf("File '%s' at path '%s' does not match the expected MD5 checksum (expected '%s', got '%s'). It may be corrupt or truncated, or the expected checksum may be out of date. The mismatching file was deleted.\n", relative_filename_flattened, lfile, md5sums[file_idx], actual_md5));
+        } else {
+          # No download error was recorded, but the file is not available. This
+          # is the typical case when downloading was disabled (download=FALSE)
+          # and the file is missing from the cache. It can also happen in rare
+          # cases where a download failed without producing an error message.
+          if(is.null(md5sums)) {
+            warning(sprintf("Failed to get file '%s' to path '%s'.\n", relative_filename_flattened, lfile));
+          } else {
+            warning(sprintf("Failed to get file '%s' with md5sum '%s' to path '%s'.\n", relative_filename_flattened, md5sums[file_idx], lfile));
           }
         }
       }
-      if(num_errors > 0L && on_errors == "stop") {
-        stop(sprintf("Getting files into local cache dir failed for %d of %d files (and stop on errors was requested).\n", num_errors, length(local_files_absolute)));
-      }
     }
-  } else {
-    are_local_files_md5_ok_afterwards = files_exist_md5(local_files_absolute, md5sums);
+    if(num_errors > 0L && on_errors == "stop") {
+      stop(sprintf("Getting files into local cache dir failed for %d of %d files (and stop on errors was requested).\n", num_errors, length(local_files_absolute)));
+    }
   }
 
   ret_list = list();
@@ -510,6 +546,8 @@ files_exist_md5 <- function(files_absolute, md5sums=NULL) {
 #'
 #' @param num_connections, integer. The number of parallel connections to use when downloading files. Defaults to 2, or to the value of the R option \code{pkgfilecache.num_connections} if it is set. Use 1 for strictly sequential downloads.
 #'
+#' @return Named character vector with one entry per file in \code{local_files_absolute} (the names are the absolute file paths). The entry is \code{NA} for files that were not downloaded in this call and for files that downloaded successfully; for files that were downloaded but failed it contains the error message of the download attempt. This message can distinguish remote problems (e.g., an HTTP status code like 404, or a connection failure) from local problems (e.g., the local file could not be written). The authoritative success check is done separately via \code{files_exist_md5} afterwards.
+#'
 #' @keywords internal
 download_files_with_md5_mismatch <- function(local_files_absolute, local_files_md5_ok, urls, files_are_binary=NULL, num_connections = getOption("pkgfilecache.num_connections", 2)) {
   num_files = length(local_files_absolute);
@@ -539,6 +577,8 @@ download_files_with_md5_mismatch <- function(local_files_absolute, local_files_m
   }
 
   files_to_download = which(!local_files_md5_ok);
+  attempt_errors = rep(NA_character_, num_files);
+  names(attempt_errors) = local_files_absolute;
 
   if(length(files_to_download) > 0) {
     if(num_connections <= 1) {
@@ -551,12 +591,23 @@ download_files_with_md5_mismatch <- function(local_files_absolute, local_files_m
         url=urls[file_idx];
         destfile = local_files_absolute[file_idx];
         cat(sprintf("Download file to '%s' from '%s'\n", destfile, url));
-        # Ignore all errors, which may be thrown depending on the download method and platform. We check later whether the files are available with correct MD5, which is much better anyways.
-        tryCatch({
+        # Download the file, but do not stop on errors: we check afterwards
+        # whether the files are available with correct MD5, which is the
+        # authoritative check. A failed download may leave an empty or partial
+        # file at destfile, so it is removed. The error message is captured and
+        # returned so that callers can report a meaningful cause to the user;
+        # it can distinguish remote problems (HTTP status like 404, connection
+        # failure) from local problems (e.g., the local file could not be
+        # written).
+        err_details = tryCatch({
           curl::curl_download(url=url, destfile=destfile, quiet=TRUE, mode=mode);
+          NA_character_;
         },
-        error=function(e){ if(file.exists(destfile)) {file.remove(destfile);}},      # If warnings happen, something went wrong and an empty file may exist at destfile. Remove it.
-        warning=function(w){ if(file.exists(destfile)) {file.remove(destfile);}});
+        error=function(e){ if(file.exists(destfile)) {file.remove(destfile);} ; conditionMessage(e);},
+        warning=function(w){ if(file.exists(destfile)) {file.remove(destfile);} ; conditionMessage(w);});
+        if(!is.na(err_details)) {
+          attempt_errors[file_idx] = err_details;
+        }
       }
     } else {
       # Parallel downloads via the curl multi interface. All transfers run
@@ -564,21 +615,38 @@ download_files_with_md5_mismatch <- function(local_files_absolute, local_files_m
       # connections at the same time. No extra R processes or threads are
       # spawned, and no new dependencies are needed (curl is already one).
       pool = curl::new_pool(total_con = num_connections, host_con = num_connections);
+      errors_by_file = new.env(hash = TRUE, parent = emptyenv());
       for (file_idx in files_to_download) {
         url = urls[file_idx];
         destfile = local_files_absolute[file_idx];
         cat(sprintf("Download file to '%s' from '%s'\n", destfile, url));
-        add_file_download_to_curl_pool(url, destfile, pool);
+        # Collect the error message per destination file. The collector receives
+        # the destination file and the error message as explicit arguments from
+        # add_file_download_to_curl_pool, which has the correct per-call
+        # 'destfile' (its own formal argument). It must NOT close over the loop
+        # variable 'destfile' here: R closures capture the variable, not its
+        # per-iteration value, so all callbacks would see the last file's path.
+        add_file_download_to_curl_pool(url, destfile, pool, error_collector=function(dest, msg) {
+          errors_by_file[[dest]] = msg;
+        });
       }
       curl::multi_run(pool = pool);
+      # Transfer the collected errors into the named result vector.
+      for (file_idx in files_to_download) {
+        destfile = local_files_absolute[file_idx];
+        if(!is.null(errors_by_file[[destfile]])) {
+          attempt_errors[file_idx] = errors_by_file[[destfile]];
+        }
+      }
     }
   }
+  return(attempt_errors);
 }
 
 
 #' @title Add a single file download to a curl multi pool.
 #'
-#' @description Add a single file download to a curl multi pool for parallel downloading. The file is streamed to disk as soon as data arrives, using curl's internal file writer (which opens the file lazily and closes it when the transfer completes). On any failure (connection error or HTTP status >= 300), the destination file is removed, so that a partially downloaded file is never mistaken for a successfully downloaded one. This function is only used internally by \code{download_files_with_md5_mismatch}.
+#' @description Add a single file download to a curl multi pool for parallel downloading. The file is streamed to disk as soon as data arrives, using curl's internal file writer (which opens the file lazily and closes it when the transfer completes). On any failure (connection error or HTTP status >= 300), the destination file is removed, so that a partially downloaded file is never mistaken for a successfully downloaded one. The failure is also reported to the \code{error_collector} callback, if given, so that callers can surface a meaningful cause (the HTTP status code or the connection error message) to the user. This function is only used internally by \code{download_files_with_md5_mismatch}.
 #'
 #' @param url, string. The URL to download.
 #'
@@ -586,25 +654,35 @@ download_files_with_md5_mismatch <- function(local_files_absolute, local_files_m
 #'
 #' @param pool, curl pool. The pool to add the download to, see \code{curl::new_pool}.
 #'
+#' @param error_collector, function or NULL. An optional callback that is called with two string arguments if the download failed, i.e., if the HTTP response had a status code >= 300 or if a connection-level error occurred: the destination file (first argument) and the error message (second argument). Passing the destination file explicitly lets callers attribute each error to the right file, without closing over loop variables. Defaults to NULL, in which case failures are only handled by removing the destination file.
+#'
 #' @return NULL, invisibly.
 #'
 #' @keywords internal
-add_file_download_to_curl_pool <- function(url, destfile, pool) {
+add_file_download_to_curl_pool <- function(url, destfile, pool, error_collector = NULL) {
   h = curl::new_handle(url = url);
   curl::multi_add(h, pool = pool, data = destfile, done = function(res, ...) {
     # The transfer completed and an HTTP response was received (this is also
     # the case for error status codes like 404). If the response indicated an
-    # error, remove the file, which may contain the server's error page.
+    # error, remove the file, which may contain the server's error page, and
+    # report the status code.
     if(!is.null(res$status_code) && res$status_code >= 300) {
       if(file.exists(destfile)) {
         tryCatch(file.remove(destfile), error = function(e) {});
       }
+      if(!is.null(error_collector)) {
+        error_collector(destfile, sprintf("HTTP status code %d (the server returned an error response).", res$status_code));
+      }
     }
   }, fail = function(err, ...) {
     # Connection-level failure (e.g., DNS or connection refused): remove any
-    # partially downloaded file.
+    # partially downloaded file and report the cause.
     if(file.exists(destfile)) {
       tryCatch(file.remove(destfile), error = function(e) {});
+    }
+    if(!is.null(error_collector)) {
+      err_msg = if(inherits(err, "condition")) conditionMessage(err) else paste(as.character(err), collapse = " ");
+      error_collector(destfile, err_msg);
     }
   });
   return(invisible(NULL));
