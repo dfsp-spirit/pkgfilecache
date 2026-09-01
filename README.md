@@ -38,10 +38,13 @@ You specify a list of optional data files, and package users can download them w
 * the MD5 checksum of the file (optional, but highly recommended)
 * a local filename, under which the file can be retrieved from the package cache
 
-Users can then access the file by the local filename. See the documentation for details.
+Users can then access the file by the local filename.
 
+There are two ways to specify the file information: one directly in R code, and one in a manifest CSV file that can be auto-generated on the command line from a directory tree of files.
 
-## Managing many files with a declarative manifest
+## Usage
+
+### Recommended: Managing many files with a declarative manifest
 
 Specifying files as three parallel vectors (local filenames, URLs, MD5 sums) is fine for a handful of files, but it gets tedious when your package has many optional data files. In that case, you can describe the files in a single declarative *manifest*, one row per file, either as a data.frame or as a CSV file shipped with your package.
 
@@ -70,7 +73,7 @@ To avoid computing MD5 sums by hand, generate the manifest from a local director
   # The MD5 checksums are computed for you. Add the CSV to your package.
 ```
 
-### Generating the manifest from the command line
+#### Generating the manifest from the command line
 
 If you prefer working in a terminal, you can generate the manifest CSV directly from your shell, without opening an interactive R session. The package provides a small command line interface for this. The recommended way is to call `manifest_cli()` from `Rscript` in a one-liner; it reads the command line arguments for you:
 
@@ -94,29 +97,6 @@ If you prefer a standalone script file, the package also ships a thin wrapper sc
 
 On Unix-like systems the script is executable, so you can copy it to a directory on your `PATH` (e.g. `~/bin`) and run it like a normal command. If you have not installed the package yet, you can also download the script directly from the GitHub releases page of this package (for a release tagged `<tag>`, use `https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/<tag>/exec/make_manifest.R`). Note that the package must be installed for the script to work, as the script itself only contains a thin wrapper around the package functions.
 
-
-## Downloading files in parallel
-
-By default, `ensure_files_available()` downloads the files that are missing (or that have an incorrect MD5 sum) in parallel: several files are downloaded at the same time using the `curl` multi interface, which can speed up downloading many small files considerably. The number of simultaneous connections defaults to 2, which is a safe choice for most servers and for CRAN checks.
-
-You can control the number of connections in two ways:
-
-* Per call, via the `num_connections` argument of `ensure_files_available()`. Use `num_connections=1` for strictly sequential downloads (e.g., when a server is slow or rate-limited), or a higher number to speed up downloading many files.
-* Globally, via the R option `options(pkgfilecache.num_connections = N)`. This changes the default for all calls that do not specify the `num_connections` argument themselves, for example the calls made by packages that use pkgfilecache to manage their optional data. Note that an explicit `num_connections` argument always takes precedence over the option.
-
-Downloads that fail (e.g., because a server closes or throttles a connection) are retried automatically up to `num_retries` times (default 2) using fresh connections, so temporary network hiccups do not cause files to be reported as missing. Set `num_retries = 0` to disable retrying.
-
-
-## Where the files are stored
-
-The package cache is a permanent directory on your system. By default it is located in the directory returned by `tools::R_user_dir(packagename, "data")` (for R version 4.0 or later), which is the location recommended by the CRAN repository policy for user-specific data and cache files (e.g., `~/.local/share/R/mypackage` on Linux). On R versions before 4.0, the directory returned by `rappdirs::user_data_dir` is used. If a cache from an older version of this package already exists at the legacy location, it is reused, so you do not have to download your files again.
-
-You can control the location with R options:
-
-* `options(pkgfilecache.cachedir = "/some/dir")`: Use `/some/dir` as the root of the package cache (the package name and optional version are appended). Useful for ramdisks or network drives.
-* `options(pkgfilecache.use_tempdir = TRUE)`: Use a subdirectory of the R session's temporary directory (`tempdir()`). Everything is cleaned up automatically when the R session ends. This is handy for unit tests and CI systems that must not write to the user's home directory.
-
-Use `get_cache_dir(pkg_info)` to find out where the cache is located in your current session.
 
 
 ## Example
@@ -145,7 +125,9 @@ See the vignette for more detailed examples!
 
 ## Documentation
 
-Full documentation is built-in, and can be accessed from within R in the usual ways. A vignette is also included:
+
+
+Full documentation is built-in, and can be accessed from within R in the usual ways with the `help()` and `example()` functions. A vignette is also included:
 
 ```r
 library("pkgfilecache")
@@ -155,14 +137,43 @@ browseVignettes("pkgfilecache")
 You can also [read the pkgfilecache vignette online](https://dfsp-spirit.github.io/pkgfilecache/articles/pkgfilecache.html) and [read the full API docs online](https://dfsp-spirit.github.io/pkgfilecache/reference/index.html).
 
 
+### FAQ
+
+## Downloading files in parallel
+
+By default, `ensure_files_available()` downloads the files that are missing (or that have an incorrect MD5 sum) in parallel: several files are downloaded at the same time using the `curl` multi interface, which can speed up downloading many small files considerably. The number of simultaneous connections defaults to 2, which is a safe choice for most servers and for CRAN checks.
+
+You can control the number of connections in two ways:
+
+* Per call, via the `num_connections` argument of `ensure_files_available()`. Use `num_connections=1` for strictly sequential downloads (e.g., when a server is slow or rate-limited), or a higher number to speed up downloading many files.
+* Globally, via the R option `options(pkgfilecache.num_connections = N)`. This changes the default for all calls that do not specify the `num_connections` argument themselves, for example the calls made by packages that use pkgfilecache to manage their optional data. Note that an explicit `num_connections` argument always takes precedence over the option.
+
+Downloads that fail (e.g., because a server closes or throttles a connection) are retried automatically up to `num_retries` times (default 2) using fresh connections, so temporary network hiccups do not cause files to be reported as missing. Set `num_retries = 0` to disable retrying.
+
+
+## Where the files are stored
+
+The package cache is a permanent directory on your system. By default it is located in the directory returned by `tools::R_user_dir(packagename, "data")` (for R version 4.0 or later), which is the location recommended by the CRAN repository policy for user-specific data and cache files (e.g., `~/.local/share/R/mypackage` on Linux). On R versions before 4.0, the directory returned by `rappdirs::user_data_dir` is used. If a cache from an older version of this package already exists at the legacy location, it is reused, so you do not have to download your files again.
+
+You can control the location with R options:
+
+* `options(pkgfilecache.cachedir = "/some/dir")`: Use `/some/dir` as the root of the package cache (the package name and optional version are appended). Useful for ramdisks or network drives.
+* `options(pkgfilecache.use_tempdir = TRUE)`: Use a subdirectory of the R session's temporary directory (`tempdir()`). Everything is cleaned up automatically when the R session ends. This is handy for unit tests and CI systems that must not write to the user's home directory.
+
+Use `get_cache_dir(pkg_info)` to find out where the cache is located in your current session.
+
+
+
 
 ## Important note regarding data downloads on CRAN servers (e.g., during unit tests)
 
 It is not allowed to store data in the user directory on CRAN servers, not even temporarily. So please do not use this package to download data into the user directory in unit tests on CRAN. In your test setup, set `options(pkgfilecache.use_tempdir = TRUE)` to redirect all downloads to the R session's temporary directory, which is allowed, or use `testthat::skip_on_cran()` at the top of test functions that require/download external data from running on CRAN. You should test on your CI provider instead, and limit CRAN unit tests to those with data that can be generated in the test code.
 
-## License
+## Author and License
 
-MIT
+The pkgfilecache package was written by [Tim Schäfer](https://ts.rcmd.org).
+
+It is licensed under the very permissable [MIT license](./LICENSE).
 
 ## Alternatives
 
