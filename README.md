@@ -27,7 +27,7 @@ install.packages("pkgfilecache")
 
 When package authors want to ship data for their package, they will quickly hit the package size limit on CRAN (which is 5 MB as of September 2019). The solution is to host the data elsewhere and download it on demand when the user requests it, then store it for future use. This is what pkgfilecache allows you to do. You can put your files onto a web server of your choice, take the MD5 sums, and have pkgfilecache download them locally. Files are automatically compared with the local package cache direcory, and only missing files or files with incorrect MD5 checksums will be downloaded. Users can then access the data in a convenient way, similar to accessing files shipped in `inst/extdata` via `system.file`. They can also erase the data if it is no longer needed.
 
-The intended way of using pkgfilecache is to **not** call the download function in your package code, but have it as part of your API that the user can decide to call *if* they want to download the optional data. However, you are of course free to call the download function in your *unit test code*, which will only be run by developers or continuous integration systems.
+
 
 
 ## How it works
@@ -139,7 +139,7 @@ You can also [read the pkgfilecache vignette online](https://dfsp-spirit.github.
 
 ### FAQ
 
-## Can I download several files in parallel?
+#### Can I download several files in parallel?
 
 Short answer: Yes, and on recent versions that's actually the default. But you are in full control of parallelism if needed.
 
@@ -153,7 +153,7 @@ You can control the number of connections in two ways:
 Downloads that fail (e.g., because a server closes or throttles a connection) are retried automatically up to `num_retries` times (default 2) using fresh connections, so temporary network hiccups do not cause files to be reported as missing. Set `num_retries = 0` to disable retrying.
 
 
-## Where the files are stored on disk?
+#### Where the files are stored on disk?
 
 Short answer: Use `get_cache_dir(pkg_info)` to find out where the cache is located in your current session.
 
@@ -163,6 +163,28 @@ You can control the location with R options:
 
 * `options(pkgfilecache.cachedir = "/some/dir")`: Use `/some/dir` as the root of the package cache (the package name and optional version are appended). Useful for ramdisks or network drives.
 * `options(pkgfilecache.use_tempdir = TRUE)`: Use a subdirectory of the R session's temporary directory (`tempdir()`). Everything is cleaned up automatically when the R session ends. This is handy for unit tests and CI systems that must not write to the user's home directory.
+
+#### Is there anything I should be aware of if I want to submit my package to CRAN?
+
+Short answer: most definitely, but in the end, it boils down to: know and adhere to the CRAN policy.
+
+If you intend to submit a package using pkgfilecache to CRAN, read on:
+
+Read the short and very informative [CRAN package policy](https://cran.r-project.org/web/packages/policies.html) first, it is mandatory in any case for CRAN submission. I will cite to very important sections here:
+
+- *"The ownership of copyright and intellectual property rights of all components of the package must be clear and unambiguous [...]. All components’ includes any downloaded at installation or during use."*
+- *"The code and examples provided in a package should never do anything which might be regarded as malicious or anti-social. The following are illustrative examples from past experience: [...] - Packages should not write in the user’s home filespace (including clipboards), nor anywhere else on the file system apart from the R session’s temporary directory (or during installation in the location pointed to by TMPDIR: and such usage should be cleaned up). Installing into the system’s R installation (e.g., scripts to its bin directory) is not allowed. Limited exceptions may be allowed in interactive sessions if the package obtains confirmation from the user. [...]*
+
+Therefore:
+
+* Make sure to document intellectual property info for files people can download. There are standard ways in R to do this, which you need to use. Putting something in the README of your package on GitHub is not enough.
+* The intended way of using pkgfilecache is to **not** call the download function in your package code, but have it as part of your API that the user can decide to call *if* they want to download the optional data.
+* If you are writing temp data, like during tests, explicitely set the output directory of pkgfilecache to the tempdir. The option is built-in ((set `options(pkgfilecache.use_tempdir = TRUE)`)).
+* Some packages will want the extra data for unit tests only. You are of course free to call the download function in your *unit test code*, which will only be run by developers or continuous integration systems. But even in test code, that policy still holds to my understanding, so:
+    - Write to a temp dir during tests (set `options(pkgfilecache.use_tempdir = TRUE)`)
+    - Be aware of additional rules in special environments, like on the CRAN servers that will build and run the tests of your package as part of automated checks: Basically you must **not** run tests on CRAN servers that download data. Use the built-in mechanisms of your unit test framework to ensure that (e.g., `testthat::skip_on_cran()` to skip tests there that need external data).
+
+That being said, there are various packages on CRAN that use pkgfilecache. In the end, all you need to do it to keep the CRAN policy in mind when submitting to CRAN, with or without pkgfilecache.
 
 
 ## Important note regarding data downloads on CRAN servers (e.g., during unit tests)
