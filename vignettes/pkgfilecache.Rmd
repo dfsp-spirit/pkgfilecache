@@ -274,6 +274,16 @@ download_optional_data <- function() {
 ```
 
 
+## Submitting your package to CRAN
+
+Packages that use pkgfilecache can be submitted to CRAN, but keep the [CRAN package policy](https://cran.r-project.org/web/packages/policies.html) in mind:
+
+* **Document the intellectual property** of the downloadable files, using the standard ways in R (a GitHub README is not enough). The policy requires that the ownership of all components, *including anything downloaded during use*, is clear and unambiguous.
+* **Do not download data in package code** at install or load time. Follow the interface suggestion above: let users trigger downloads via your API.
+* **Unit tests must not write to the user directory on CRAN servers.** Write downloads to a temp dir (`options(pkgfilecache.use_tempdir = TRUE)`) and skip tests that need external data on CRAN (`testthat::skip_on_cran()`). Test downloads on your CI provider instead, and limit CRAN unit tests to data that can be generated in test code.
+
+Several packages on CRAN already use pkgfilecache this way.
+
 ## Limitations and Suggestions
 
 * Let the users of your package decide whether or not they want the optional data, by supplying an API as suggested above.
