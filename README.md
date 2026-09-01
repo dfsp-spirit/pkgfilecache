@@ -44,6 +44,8 @@ There are two ways to specify the file information: one directly in R code, and 
 
 ## Usage
 
+There are two ways to specify which files pkgfilecache should manage, and both are shown below. The recommended approach — especially when your package has many optional data files — is to describe the files in a single declarative *manifest*. The classic, programmatic approach is to list the files directly in R code, which is quick and concise when you only have a handful of files.
+
 ### Recommended: Managing many files with a declarative manifest
 
 Specifying files as three parallel vectors (local filenames, URLs, MD5 sums) is fine for a handful of files, but it gets tedious when your package has many optional data files. In that case, you can describe the files in a single declarative *manifest*, one row per file, either as a data.frame or as a CSV file shipped with your package.
@@ -97,11 +99,9 @@ If you prefer a standalone script file, the package also ships a thin wrapper sc
 
 On Unix-like systems the script is executable, so you can copy it to a directory on your `PATH` (e.g. `~/bin`) and run it like a normal command. If you have not installed the package yet, you can also download the script directly from the GitHub releases page of this package (for a release tagged `<tag>`, use `https://raw.githubusercontent.com/dfsp-spirit/pkgfilecache/<tag>/exec/make_manifest.R`). Note that the package must be installed for the script to work, as the script itself only contains a thin wrapper around the package functions.
 
+### The classic, programmatic way: Specifying files directly in R code
 
-
-## Example
-
-See the vignette for more detailed examples!
+If you only have a handful of optional data files, you can skip the manifest and specify the files directly in R code: three parallel vectors with the local filenames (under which the files will be stored in the package cache), the download URLs, and — optional but highly recommended — the MD5 checksums. Pass them to `ensure_files_available()`, and the package downloads anything that is missing or whose MD5 sum does not match.
 
 ```r
   pkg_info = pkgfilecache::get_pkg_info("yourpackage");        # to identify the cache dir
@@ -121,7 +121,7 @@ See the vignette for more detailed examples!
   local_file_full_path = pkgfilecache::get_filepath(pkg_info, "file1.txt", mustWork=TRUE);
 ```
 
-
+See the vignette for more detailed examples!
 
 ## Documentation
 
@@ -139,7 +139,9 @@ You can also [read the pkgfilecache vignette online](https://dfsp-spirit.github.
 
 ### FAQ
 
-## Downloading files in parallel
+## Can I download several files in parallel?
+
+Short answer: Yes, and on recent versions that's actually the default. But you are in full control of parallelism if needed.
 
 By default, `ensure_files_available()` downloads the files that are missing (or that have an incorrect MD5 sum) in parallel: several files are downloaded at the same time using the `curl` multi interface, which can speed up downloading many small files considerably. The number of simultaneous connections defaults to 2, which is a safe choice for most servers and for CRAN checks.
 
@@ -151,7 +153,9 @@ You can control the number of connections in two ways:
 Downloads that fail (e.g., because a server closes or throttles a connection) are retried automatically up to `num_retries` times (default 2) using fresh connections, so temporary network hiccups do not cause files to be reported as missing. Set `num_retries = 0` to disable retrying.
 
 
-## Where the files are stored
+## Where the files are stored on disk?
+
+Short answer: Use `get_cache_dir(pkg_info)` to find out where the cache is located in your current session.
 
 The package cache is a permanent directory on your system. By default it is located in the directory returned by `tools::R_user_dir(packagename, "data")` (for R version 4.0 or later), which is the location recommended by the CRAN repository policy for user-specific data and cache files (e.g., `~/.local/share/R/mypackage` on Linux). On R versions before 4.0, the directory returned by `rappdirs::user_data_dir` is used. If a cache from an older version of this package already exists at the legacy location, it is reused, so you do not have to download your files again.
 
@@ -159,10 +163,6 @@ You can control the location with R options:
 
 * `options(pkgfilecache.cachedir = "/some/dir")`: Use `/some/dir` as the root of the package cache (the package name and optional version are appended). Useful for ramdisks or network drives.
 * `options(pkgfilecache.use_tempdir = TRUE)`: Use a subdirectory of the R session's temporary directory (`tempdir()`). Everything is cleaned up automatically when the R session ends. This is handy for unit tests and CI systems that must not write to the user's home directory.
-
-Use `get_cache_dir(pkg_info)` to find out where the cache is located in your current session.
-
-
 
 
 ## Important note regarding data downloads on CRAN servers (e.g., during unit tests)
